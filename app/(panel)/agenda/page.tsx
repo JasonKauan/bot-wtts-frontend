@@ -39,9 +39,6 @@ export default function AgendaPage() {
     if (!token) return
     if (!silent) setLoading(true)
     try {
-      const params: Record<string, string> = { data }
-      if (filtroProf) params.profissionalId = filtroProf
-      const query = new URLSearchParams(params).toString()
       const ags = await agendaApi.list(token, data + (filtroProf ? `&profissionalId=${filtroProf}` : ''))
       if (prevCount.current !== -1 && ags.length > prevCount.current) {
         setNovoBadge(true)
