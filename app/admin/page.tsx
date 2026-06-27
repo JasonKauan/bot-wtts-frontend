@@ -1,12 +1,13 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { adminApi } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
 import type { ClienteResumo, PlanoNome, PlanoPayload } from '@/lib/types'
 import {
   ShieldCheck, Search, LogOut, RefreshCw, Loader2, Check, X,
-  UserPlus, CreditCard, KeyRound, Ban, Power, Copy,
+  UserPlus, CreditCard, KeyRound, Ban, Power, Copy, ScrollText,
 } from 'lucide-react'
 
 const inputCls =
@@ -89,13 +90,20 @@ export default function AdminPage() {
               <p className="text-xs text-muted">Back-office</p>
             </div>
           </div>
-          <button onClick={sair} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
-            <LogOut size={15} /> Sair
-          </button>
+          <div className="flex items-center gap-4">
+            <Link href="/admin/auditoria" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
+              <ScrollText size={15} /> Histórico
+            </Link>
+            <button onClick={sair} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
+              <LogOut size={15} /> Sair
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
+        {!loading && clientes.length > 0 && <StatsCards clientes={clientes} />}
+
         <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
           <h2 className="text-xl font-bold text-foreground">
             Clientes <span className="text-muted font-normal text-base">({filtrados.length})</span>
@@ -203,6 +211,38 @@ export default function AdminPage() {
 }
 
 // ── Componentes ────────────────────────────────────────────────────────────
+
+function StatsCards({ clientes }: { clientes: ClienteResumo[] }) {
+  const s = useMemo(() => {
+    const ativos = clientes.filter(c => c.ativo)
+    return {
+      total: clientes.length,
+      trial: ativos.filter(c => c.plano === 'TRIAL' && !c.vencido).length,
+      pagantes: ativos.filter(c => c.plano !== 'TRIAL' && !c.vencido).length,
+      vencidos: ativos.filter(c => c.vencido).length,
+      suspensos: clientes.filter(c => !c.ativo).length,
+    }
+  }, [clientes])
+
+  const cards = [
+    { label: 'Total', valor: s.total },
+    { label: 'Em trial', valor: s.trial },
+    { label: 'Pagantes', valor: s.pagantes, destaque: true },
+    { label: 'Vencidos', valor: s.vencidos },
+    { label: 'Suspensos', valor: s.suspensos },
+  ]
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+      {cards.map(c => (
+        <div key={c.label} className="bg-card border border-border rounded-xl shadow-card p-4">
+          <div className={`text-2xl font-bold ${c.destaque ? 'text-primary' : 'text-foreground'}`}>{c.valor}</div>
+          <div className="text-xs text-muted mt-0.5">{c.label}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 function IconBtn({ children, title, onClick, danger }: {
   children: React.ReactNode; title: string; onClick: () => void; danger?: boolean

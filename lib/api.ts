@@ -204,6 +204,10 @@ export const adminApi = {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     }),
+  auditoria: (token: string) =>
+    request<import('./types').AuditoriaItem[]>('/api/admin/auditoria', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
 }
 
 // ── WhatsApp (conexão da instância) ───────────────────────────────────────────

@@ -81,6 +81,14 @@ export interface SenhaResponse {
   senhaProvisoria: string | null
 }
 
+export interface AuditoriaItem {
+  adminEmail: string | null
+  acao: string
+  tenantNome: string | null
+  detalhe: string | null
+  criadoEm: string
+}
+
 // ── Assinatura (Iteração 6) ──────────────────────────────────────────────────
 export interface AssinaturaStatus {
   plano: 'TRIAL' | 'BASICO' | 'PRO' | 'PLUS'
