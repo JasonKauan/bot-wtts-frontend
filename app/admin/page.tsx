@@ -25,6 +25,7 @@ export default function AdminPage() {
   const [planoDe, setPlanoDe] = useState<ClienteResumo | null>(null)
   const [senhaResult, setSenhaResult] = useState<{ nome: string; senha: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState<ClienteResumo | null>(null)
+  const [confirmAtivo, setConfirmAtivo] = useState<ClienteResumo | null>(null)
   const [acting, setActing] = useState(false)
 
   async function fetchData() {
@@ -61,16 +62,19 @@ export default function AdminPage() {
     }
   }
 
-  async function toggleAtivo(c: ClienteResumo) {
+  async function doToggleAtivo(c: ClienteResumo) {
     if (!token) return
-    const acao = c.ativo ? 'suspender' : 'reativar'
-    if (!confirm(`Confirmar ${acao} "${c.nome}"?${c.ativo ? ' O painel fica bloqueado e o bot para de responder.' : ''}`)) return
+    setActing(true); setErro('')
     try {
       if (c.ativo) await adminApi.suspender(token, c.id)
       else await adminApi.reativar(token, c.id)
+      setConfirmAtivo(null)
       fetchData()
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Erro')
+      setConfirmAtivo(null)
+      setErro(err instanceof Error ? err.message : 'Erro')
+    } finally {
+      setActing(false)
     }
   }
 
@@ -173,7 +177,7 @@ export default function AdminPage() {
                           <IconBtn
                             title={c.ativo ? 'Suspender' : 'Reativar'}
                             danger={c.ativo}
-                            onClick={() => toggleAtivo(c)}
+                            onClick={() => setConfirmAtivo(c)}
                           >
                             {c.ativo ? <Ban size={15} /> : <Power size={15} />}
                           </IconBtn>
@@ -223,14 +227,31 @@ export default function AdminPage() {
           onConfirm={() => doResetarSenha(confirmReset)}
         />
       )}
+
+      {confirmAtivo && (
+        <ConfirmModal
+          title={confirmAtivo.ativo ? 'Suspender cliente' : 'Reativar cliente'}
+          mensagem={confirmAtivo.ativo
+            ? `Suspender "${confirmAtivo.nome}"? O painel do dono fica bloqueado e o bot para de responder até reativar.`
+            : `Reativar "${confirmAtivo.nome}"? O acesso ao painel e o bot voltam a funcionar.`}
+          confirmLabel={confirmAtivo.ativo ? 'Suspender' : 'Reativar'}
+          danger={confirmAtivo.ativo}
+          loading={acting}
+          onCancel={() => setConfirmAtivo(null)}
+          onConfirm={() => doToggleAtivo(confirmAtivo)}
+        />
+      )}
     </div>
   )
 }
 
-function ConfirmModal({ title, mensagem, confirmLabel, loading, onCancel, onConfirm }: {
-  title: string; mensagem: string; confirmLabel: string; loading?: boolean
+function ConfirmModal({ title, mensagem, confirmLabel, loading, danger, onCancel, onConfirm }: {
+  title: string; mensagem: string; confirmLabel: string; loading?: boolean; danger?: boolean
   onCancel: () => void; onConfirm: () => void
 }) {
+  const confirmCls = danger
+    ? 'bg-danger hover:opacity-90 text-white'
+    : 'bg-primary hover:bg-primary-hover text-primary-foreground'
   return (
     <Modal title={title} onClose={onCancel}>
       <p className="text-sm text-muted mb-5">{mensagem}</p>
@@ -238,7 +259,7 @@ function ConfirmModal({ title, mensagem, confirmLabel, loading, onCancel, onConf
         <button onClick={onCancel} className="text-sm border border-border rounded-lg px-4 py-2 text-muted hover:text-foreground transition">
           Cancelar
         </button>
-        <button onClick={onConfirm} disabled={loading} className="inline-flex items-center gap-2 text-sm bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg px-4 py-2 transition disabled:opacity-50">
+        <button onClick={onConfirm} disabled={loading} className={`inline-flex items-center gap-2 text-sm rounded-lg px-4 py-2 transition disabled:opacity-50 ${confirmCls}`}>
           {loading && <Loader2 size={15} className="animate-spin" />}{confirmLabel}
         </button>
       </div>
