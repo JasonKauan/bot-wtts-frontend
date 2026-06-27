@@ -176,6 +176,34 @@ export const adminApi = {
     request<{ estado: string; conectado: boolean }>(`/api/admin/clientes/${id}/whatsapp`, {
       headers: { Authorization: `Bearer ${token}` },
     }),
+  criarCliente: (token: string, body: import('./types').CriarClientePayload) =>
+    request<import('./types').SenhaResponse>('/api/admin/clientes', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }),
+  alterarPlano: (token: string, id: string, body: import('./types').PlanoPayload) =>
+    request<void>(`/api/admin/clientes/${id}/plano`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }),
+  resetarSenha: (token: string, id: string) =>
+    request<import('./types').SenhaResponse>(`/api/admin/clientes/${id}/senha`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({}),
+    }),
+  suspender: (token: string, id: string) =>
+    request<void>(`/api/admin/clientes/${id}/suspender`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  reativar: (token: string, id: string) =>
+    request<void>(`/api/admin/clientes/${id}/reativar`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
 }
 
 // ── WhatsApp (conexão da instância) ───────────────────────────────────────────
