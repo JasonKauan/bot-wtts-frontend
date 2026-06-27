@@ -24,6 +24,8 @@ export default function AdminPage() {
   const [modalCriar, setModalCriar] = useState(false)
   const [planoDe, setPlanoDe] = useState<ClienteResumo | null>(null)
   const [senhaResult, setSenhaResult] = useState<{ nome: string; senha: string } | null>(null)
+  const [confirmReset, setConfirmReset] = useState<ClienteResumo | null>(null)
+  const [acting, setActing] = useState(false)
 
   async function fetchData() {
     if (!token) return
@@ -44,14 +46,18 @@ export default function AdminPage() {
     router.push('/admin/login')
   }
 
-  async function resetarSenha(c: ClienteResumo) {
+  async function doResetarSenha(c: ClienteResumo) {
     if (!token) return
-    if (!confirm(`Gerar uma nova senha para "${c.nome}"? A senha atual deixa de funcionar.`)) return
+    setActing(true); setErro('')
     try {
       const r = await adminApi.resetarSenha(token, c.id)
+      setConfirmReset(null)
       if (r.senhaProvisoria) setSenhaResult({ nome: c.nome, senha: r.senhaProvisoria })
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Erro ao resetar senha')
+      setConfirmReset(null)
+      setErro(err instanceof Error ? err.message : 'Erro ao resetar senha')
+    } finally {
+      setActing(false)
     }
   }
 
@@ -163,7 +169,7 @@ export default function AdminPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1">
                           <IconBtn title="Plano" onClick={() => setPlanoDe(c)}><CreditCard size={15} /></IconBtn>
-                          <IconBtn title="Resetar senha" onClick={() => resetarSenha(c)}><KeyRound size={15} /></IconBtn>
+                          <IconBtn title="Resetar senha" onClick={() => setConfirmReset(c)}><KeyRound size={15} /></IconBtn>
                           <IconBtn
                             title={c.ativo ? 'Suspender' : 'Reativar'}
                             danger={c.ativo}
@@ -206,7 +212,37 @@ export default function AdminPage() {
       {senhaResult && (
         <SenhaModal nome={senhaResult.nome} senha={senhaResult.senha} onClose={() => setSenhaResult(null)} />
       )}
+
+      {confirmReset && (
+        <ConfirmModal
+          title="Resetar senha"
+          mensagem={`Gerar uma nova senha para "${confirmReset.nome}"? A senha atual deixa de funcionar imediatamente.`}
+          confirmLabel="Gerar nova senha"
+          loading={acting}
+          onCancel={() => setConfirmReset(null)}
+          onConfirm={() => doResetarSenha(confirmReset)}
+        />
+      )}
     </div>
+  )
+}
+
+function ConfirmModal({ title, mensagem, confirmLabel, loading, onCancel, onConfirm }: {
+  title: string; mensagem: string; confirmLabel: string; loading?: boolean
+  onCancel: () => void; onConfirm: () => void
+}) {
+  return (
+    <Modal title={title} onClose={onCancel}>
+      <p className="text-sm text-muted mb-5">{mensagem}</p>
+      <div className="flex gap-2 justify-end">
+        <button onClick={onCancel} className="text-sm border border-border rounded-lg px-4 py-2 text-muted hover:text-foreground transition">
+          Cancelar
+        </button>
+        <button onClick={onConfirm} disabled={loading} className="inline-flex items-center gap-2 text-sm bg-primary hover:bg-primary-hover text-primary-foreground rounded-lg px-4 py-2 transition disabled:opacity-50">
+          {loading && <Loader2 size={15} className="animate-spin" />}{confirmLabel}
+        </button>
+      </div>
+    </Modal>
   )
 }
 
