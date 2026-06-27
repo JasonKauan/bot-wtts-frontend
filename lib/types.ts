@@ -43,6 +43,19 @@ export interface AuthResponse {
   role: string
 }
 
+// ── Admin / back-office (Fase 1) ─────────────────────────────────────────────
+export interface ClienteResumo {
+  id: string
+  nome: string
+  telefoneWhatsapp: string | null
+  emailDono: string | null
+  plano: 'TRIAL' | 'BASICO' | 'PRO' | 'PLUS'
+  vencido: boolean
+  trialExpiraEm: string | null
+  assinaturaExpiraEm: string | null
+  criadoEm: string
+}
+
 // ── Assinatura (Iteração 6) ──────────────────────────────────────────────────
 export interface AssinaturaStatus {
   plano: 'TRIAL' | 'BASICO' | 'PRO' | 'PLUS'

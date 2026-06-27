@@ -161,6 +161,23 @@ export const configApi = {
     }),
 }
 
+// ── Admin / back-office (Fase 1) ──────────────────────────────────────────────
+export const adminApi = {
+  login: (email: string, senha: string) =>
+    request<{ token: string }>('/api/admin/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, senha }),
+    }),
+  clientes: (token: string) =>
+    request<import('./types').ClienteResumo[]>('/api/admin/clientes', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  whatsapp: (token: string, id: string) =>
+    request<{ estado: string; conectado: boolean }>(`/api/admin/clientes/${id}/whatsapp`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+}
+
 // ── WhatsApp (conexão da instância) ───────────────────────────────────────────
 export const whatsappApi = {
   status: (token: string) =>

@@ -21,6 +21,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // Back-office: protege /admin (exceto a própria tela de login).
+  if (pathname.startsWith('/admin') && pathname !== '/admin/login' && !token) {
+    return NextResponse.redirect(new URL('/admin/login', request.url))
+  }
+
   return NextResponse.next()
 }
 
@@ -33,5 +38,6 @@ export const config = {
     '/servicos/:path*',
     '/assinatura/:path*',
     '/configuracoes/:path*',
+    '/admin/:path*',
   ],
 }
