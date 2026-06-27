@@ -8,10 +8,13 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value
   const { pathname } = request.nextUrl
 
-  const isPanel = pathname.startsWith('/dashboard') ||
+  const isPanel =
+    pathname.startsWith('/dashboard') ||
     pathname.startsWith('/agenda') ||
+    pathname.startsWith('/conectar') ||
     pathname.startsWith('/profissionais') ||
     pathname.startsWith('/servicos') ||
+    pathname.startsWith('/assinatura') ||
     pathname.startsWith('/configuracoes')
 
   if (isPanel && !token) {
@@ -22,5 +25,13 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/agenda/:path*', '/profissionais/:path*', '/servicos/:path*', '/configuracoes/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/agenda/:path*',
+    '/conectar/:path*',
+    '/profissionais/:path*',
+    '/servicos/:path*',
+    '/assinatura/:path*',
+    '/configuracoes/:path*',
+  ],
 }

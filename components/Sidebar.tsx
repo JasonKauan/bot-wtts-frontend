@@ -2,14 +2,20 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import ThemeToggle from '@/components/ThemeToggle'
+import {
+  LayoutDashboard, CalendarDays, Users, Scissors, CreditCard,
+  Settings, MessageSquare, LogOut, CalendarCheck,
+} from 'lucide-react'
 
 const links = [
-  { href: '/dashboard',     label: 'Dashboard',      icon: '📊' },
-  { href: '/agenda',        label: 'Agenda',         icon: '📅' },
-  { href: '/profissionais', label: 'Profissionais',  icon: '👤' },
-  { href: '/servicos',      label: 'Serviços',       icon: '✂️' },
-  { href: '/assinatura',    label: 'Assinatura',     icon: '💳' },
-  { href: '/configuracoes', label: 'Configurações',  icon: '⚙️' },
+  { href: '/dashboard',     label: 'Dashboard',         icon: LayoutDashboard },
+  { href: '/agenda',        label: 'Agenda',            icon: CalendarDays },
+  { href: '/conectar',      label: 'Conectar WhatsApp', icon: MessageSquare },
+  { href: '/profissionais', label: 'Profissionais',     icon: Users },
+  { href: '/servicos',      label: 'Serviços',          icon: Scissors },
+  { href: '/assinatura',    label: 'Assinatura',        icon: CreditCard },
+  { href: '/configuracoes', label: 'Configurações',     icon: Settings },
 ]
 
 export default function Sidebar() {
@@ -23,38 +29,43 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-56 min-h-screen bg-white border-r border-gray-200 flex flex-col">
-      <div className="px-6 py-5 border-b border-gray-200">
-        <span className="text-xl font-bold text-green-700">📅 AgendaBot</span>
+    <aside className="w-60 shrink-0 min-h-screen bg-card border-r border-border flex flex-col">
+      <div className="px-5 py-5 flex items-center gap-2.5 border-b border-border">
+        <span className="grid place-items-center h-9 w-9 rounded-xl bg-primary text-primary-foreground shadow-sm">
+          <CalendarCheck size={20} />
+        </span>
+        <span className="text-lg font-bold tracking-tight text-foreground">AgendaBot</span>
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">
         {links.map(l => {
           const active = pathname === l.href || pathname.startsWith(l.href + '/')
+          const Icon = l.icon
           return (
             <Link
               key={l.href}
               href={l.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
                 active
-                  ? 'bg-green-50 text-green-700'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-primary-subtle text-primary'
+                  : 'text-muted hover:bg-muted-bg hover:text-foreground'
               }`}
             >
-              <span>{l.icon}</span>
+              <Icon size={18} className="shrink-0" />
               {l.label}
             </Link>
           )
         })}
       </nav>
 
-      <div className="px-3 py-4 border-t border-gray-200">
+      <div className="px-3 py-4 border-t border-border flex items-center justify-between">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-red-50 hover:text-red-600 transition"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted hover:bg-danger-subtle hover:text-danger transition"
         >
-          <span>🚪</span> Sair
+          <LogOut size={18} /> Sair
         </button>
+        <ThemeToggle />
       </div>
     </aside>
   )

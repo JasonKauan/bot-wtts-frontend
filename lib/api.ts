@@ -160,3 +160,15 @@ export const configApi = {
       body: JSON.stringify(body),
     }),
 }
+
+// ── WhatsApp (conexão da instância) ───────────────────────────────────────────
+export const whatsappApi = {
+  status: (token: string) =>
+    request<{ estado: string; conectado: boolean }>('/api/whatsapp/status', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  qr: (token: string) =>
+    request<{ conectado: boolean; qr: string }>('/api/whatsapp/qr', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+}

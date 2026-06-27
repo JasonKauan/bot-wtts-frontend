@@ -5,8 +5,9 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { assinaturaApi } from '@/lib/api'
 import type { AssinaturaStatus } from '@/lib/types'
+import { AlertTriangle, Clock } from 'lucide-react'
 
-/** Aviso de trial acabando / assinatura vencida no topo do painel (Iteração 6). */
+/** Aviso de trial acabando / assinatura vencida no topo do painel. */
 export default function TrialBanner() {
   const { token } = useAuth()
   const pathname = usePathname()
@@ -21,22 +22,18 @@ export default function TrialBanner() {
 
   if (status.vencida) {
     return (
-      <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm font-medium flex items-center justify-between gap-4">
-        <span>⚠️ Sua assinatura venceu. Renove para continuar usando o AgendaBot.</span>
-        <Link href="/assinatura" className="shrink-0 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition">
-          Renovar
-        </Link>
+      <div className="mb-6 rounded-xl border border-border bg-danger-subtle text-danger px-4 py-3 text-sm font-medium flex items-center justify-between gap-4">
+        <span className="flex items-center gap-2"><AlertTriangle size={16} /> Sua assinatura venceu. Renove para continuar usando o AgendaBot.</span>
+        <Link href="/assinatura" className="shrink-0 bg-danger text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition">Renovar</Link>
       </div>
     )
   }
 
   if (status.avisoTrial) {
     return (
-      <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl px-4 py-3 text-sm font-medium flex items-center justify-between gap-4">
-        <span>⏳ Seu período de teste termina em {status.diasRestantes} dia(s).</span>
-        <Link href="/assinatura" className="shrink-0 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-lg transition">
-          Assinar
-        </Link>
+      <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-400 px-4 py-3 text-sm font-medium flex items-center justify-between gap-4">
+        <span className="flex items-center gap-2"><Clock size={16} /> Seu período de teste termina em {status.diasRestantes} dia(s).</span>
+        <Link href="/assinatura" className="shrink-0 bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg transition">Assinar</Link>
       </div>
     )
   }

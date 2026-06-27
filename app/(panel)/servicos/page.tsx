@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { servicosApi } from '@/lib/api'
 import type { Servico } from '@/lib/types'
+import { Plus, Pencil, Power, Check, X } from 'lucide-react'
 
 export default function ServicosPage() {
   const { token } = useAuth()
@@ -53,77 +54,50 @@ export default function ServicosPage() {
     fetchData()
   }
 
+  const inputCls = 'bg-card border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition'
+
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Serviços</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">Serviços</h1>
 
-      <form onSubmit={handleCreate} className="bg-white rounded-xl border border-gray-200 p-5 mb-6 flex gap-3 flex-wrap">
-        <input
-          value={novoNome}
-          onChange={e => setNovoNome(e.target.value)}
-          placeholder="Nome do serviço"
-          className="flex-1 min-w-[180px] border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
+      <form onSubmit={handleCreate} className="bg-card border border-border rounded-xl shadow-card p-5 mb-6 flex gap-3 flex-wrap items-center">
+        <input value={novoNome} onChange={e => setNovoNome(e.target.value)} placeholder="Nome do serviço" className={`flex-1 min-w-[180px] ${inputCls}`} />
         <div className="flex items-center gap-2">
-          <input
-            type="number"
-            min={1}
-            value={novoDuracao}
-            onChange={e => setNovoDuracao(Number(e.target.value))}
-            className="w-20 border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-          <span className="text-sm text-gray-500">min</span>
+          <input type="number" min={1} value={novoDuracao} onChange={e => setNovoDuracao(Number(e.target.value))} className={`w-20 ${inputCls}`} />
+          <span className="text-sm text-muted">min</span>
         </div>
-        <button
-          type="submit"
-          disabled={saving}
-          className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg transition disabled:opacity-50"
-        >
-          Adicionar
+        <button type="submit" disabled={saving} className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-primary-foreground text-sm px-4 py-2 rounded-lg transition disabled:opacity-50">
+          <Plus size={16} /> Adicionar
         </button>
       </form>
 
-      {erro && <p className="text-red-500 text-sm mb-4">{erro}</p>}
+      {erro && <p className="text-danger text-sm mb-4">{erro}</p>}
 
       {loading ? (
-        <p className="text-gray-500">Carregando...</p>
+        <p className="text-muted">Carregando...</p>
       ) : servicos.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400">
-          Nenhum serviço cadastrado.
-        </div>
+        <div className="bg-card border border-border rounded-xl shadow-card p-10 text-center text-muted">Nenhum serviço cadastrado.</div>
       ) : (
         <div className="space-y-3">
           {servicos.map(s => (
-            <div key={s.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between gap-4">
+            <div key={s.id} className="bg-card border border-border rounded-xl shadow-card p-4 flex items-center justify-between gap-4">
               {editando?.id === s.id ? (
                 <form onSubmit={handleUpdate} className="flex gap-2 flex-1 flex-wrap items-center">
-                  <input
-                    value={editando.nome}
-                    onChange={e => setEditando({ ...editando, nome: e.target.value })}
-                    className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm min-w-[120px]"
-                  />
-                  <input
-                    type="number"
-                    min={1}
-                    value={editando.duracao}
-                    onChange={e => setEditando({ ...editando, duracao: Number(e.target.value) })}
-                    className="w-16 border border-gray-300 rounded px-2 py-1 text-sm"
-                  />
-                  <span className="text-xs text-gray-400">min</span>
-                  <button type="submit" disabled={saving} className="text-green-600 text-sm font-medium">Salvar</button>
-                  <button type="button" onClick={() => setEditando(null)} className="text-gray-400 text-sm">Cancelar</button>
+                  <input value={editando.nome} onChange={e => setEditando({ ...editando, nome: e.target.value })} className={`flex-1 min-w-[120px] ${inputCls} py-1.5`} />
+                  <input type="number" min={1} value={editando.duracao} onChange={e => setEditando({ ...editando, duracao: Number(e.target.value) })} className={`w-16 ${inputCls} py-1.5`} />
+                  <span className="text-xs text-muted">min</span>
+                  <button type="submit" disabled={saving} className="inline-flex items-center gap-1 text-primary text-sm font-medium"><Check size={15} /> Salvar</button>
+                  <button type="button" onClick={() => setEditando(null)} className="inline-flex items-center gap-1 text-muted text-sm hover:text-foreground"><X size={15} /> Cancelar</button>
                 </form>
               ) : (
                 <>
                   <div className="flex-1">
-                    <span className="font-medium text-gray-800">{s.nome}</span>
-                    <span className="ml-2 text-xs text-gray-400">{s.duracaoMinutos} min</span>
-                    {!s.ativo && <span className="ml-2 text-xs text-gray-400">(inativo)</span>}
+                    <span className="font-medium text-foreground">{s.nome}</span>
+                    <span className="ml-2 text-xs text-muted">{s.duracaoMinutos} min</span>
+                    {!s.ativo && <span className="ml-2 text-xs rounded-full bg-muted-bg text-muted px-2 py-0.5">inativo</span>}
                   </div>
-                  <button onClick={() => setEditando({ id: s.id, nome: s.nome, duracao: s.duracaoMinutos })} className="text-sm text-blue-500 hover:text-blue-700">Editar</button>
-                  <button onClick={() => toggleAtivo(s.id)} className={`text-sm ${s.ativo ? 'text-red-400 hover:text-red-600' : 'text-green-500 hover:text-green-700'}`}>
-                    {s.ativo ? 'Desativar' : 'Ativar'}
-                  </button>
+                  <button onClick={() => setEditando({ id: s.id, nome: s.nome, duracao: s.duracaoMinutos })} className="inline-flex items-center gap-1 text-sm text-muted hover:text-foreground transition"><Pencil size={15} /> Editar</button>
+                  <button onClick={() => toggleAtivo(s.id)} className={`inline-flex items-center gap-1 text-sm transition ${s.ativo ? 'text-muted hover:text-danger' : 'text-primary hover:text-primary-hover'}`}><Power size={15} /> {s.ativo ? 'Desativar' : 'Ativar'}</button>
                 </>
               )}
             </div>
