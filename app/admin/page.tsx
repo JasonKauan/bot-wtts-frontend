@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext'
 import type { ClienteResumo, PlanoNome, PlanoPayload } from '@/lib/types'
 import {
   ShieldCheck, Search, LogOut, RefreshCw, Loader2, Check, X,
-  UserPlus, CreditCard, KeyRound, Ban, Power, Copy, ScrollText,
+  UserPlus, CreditCard, KeyRound, Ban, Power, Copy, ScrollText, Bell,
 } from 'lucide-react'
 
 const inputCls =
@@ -27,6 +27,7 @@ export default function AdminPage() {
   const [confirmReset, setConfirmReset] = useState<ClienteResumo | null>(null)
   const [confirmAtivo, setConfirmAtivo] = useState<ClienteResumo | null>(null)
   const [acting, setActing] = useState(false)
+  const [aviso, setAviso] = useState('')
 
   async function fetchData() {
     if (!token) return
@@ -45,6 +46,18 @@ export default function AdminPage() {
   function sair() {
     logout()
     router.push('/admin/login')
+  }
+
+  async function dispararLembretes() {
+    if (!token) return
+    setAviso(''); setErro('')
+    try {
+      const r = await adminApi.dispararLembretes(token)
+      setAviso(`Lembretes disparados: ${r.enviados} enviado(s) (janela de 23–25h a partir de agora).`)
+      setTimeout(() => setAviso(''), 6000)
+    } catch (err: unknown) {
+      setErro(err instanceof Error ? err.message : 'Erro ao disparar lembretes')
+    }
   }
 
   async function doResetarSenha(c: ClienteResumo) {
@@ -128,6 +141,9 @@ export default function AdminPage() {
                 className="w-56 bg-card border border-input rounded-lg pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
               />
             </div>
+            <button onClick={dispararLembretes} title="Dispara o job de lembretes agora (teste)" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground border border-border rounded-lg px-3 py-2 transition">
+              <Bell size={15} /> Testar lembretes
+            </button>
             <button onClick={fetchData} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground border border-border rounded-lg px-3 py-2 transition">
               <RefreshCw size={15} /> Atualizar
             </button>
@@ -138,6 +154,7 @@ export default function AdminPage() {
         </div>
 
         {erro && <p className="text-danger text-sm mb-4">{erro}</p>}
+        {aviso && <p className="text-primary text-sm mb-4 flex items-center gap-1"><Check size={15} /> {aviso}</p>}
 
         {loading ? (
           <p className="text-muted">Carregando...</p>
