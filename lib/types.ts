@@ -34,6 +34,20 @@ export interface Configuracao {
   telefoneWhatsapp: string
   horarioAbertura: number
   horarioFechamento: number
+  intervaloMinutos: number
+  almocoInicio: number | null
+  almocoFim: number | null
+  diasFuncionamento: string // ISO "1,2,3,4,5,6,7"
+}
+
+export interface ConfiguracaoPayload {
+  nome: string
+  horarioAbertura: number
+  horarioFechamento: number
+  intervaloMinutos: number
+  almocoInicio: number | null
+  almocoFim: number | null
+  diasFuncionamento: string
 }
 
 export interface AuthResponse {

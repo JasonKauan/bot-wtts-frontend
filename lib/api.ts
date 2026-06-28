@@ -153,7 +153,7 @@ export const configApi = {
     request<import('./types').Configuracao>('/api/configuracoes', {
       headers: { Authorization: `Bearer ${token}` },
     }),
-  update: (token: string, body: { nome: string; horarioAbertura: number; horarioFechamento: number }) =>
+  update: (token: string, body: import('./types').ConfiguracaoPayload) =>
     request<import('./types').Configuracao>('/api/configuracoes', {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}` },
