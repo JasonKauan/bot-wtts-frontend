@@ -7,13 +7,14 @@ import { agendamentosApi } from '@/lib/api'
 import ThemeToggle from '@/components/ThemeToggle'
 import {
   LayoutDashboard, CalendarDays, Users, Scissors, CreditCard,
-  Settings, MessageSquare, LogOut, CalendarCheck, Inbox,
+  Settings, MessageSquare, LogOut, CalendarCheck, Inbox, CalendarOff,
 } from 'lucide-react'
 
 const links = [
   { href: '/dashboard',     label: 'Dashboard',         icon: LayoutDashboard },
   { href: '/agenda',        label: 'Agenda',            icon: CalendarDays },
   { href: '/solicitacoes',  label: 'Solicitações',      icon: Inbox },
+  { href: '/folgas',        label: 'Folgas',            icon: CalendarOff },
   { href: '/conectar',      label: 'Conectar WhatsApp', icon: MessageSquare },
   { href: '/profissionais', label: 'Profissionais',     icon: Users },
   { href: '/servicos',      label: 'Serviços',          icon: Scissors },

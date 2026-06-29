@@ -224,6 +224,25 @@ export const adminApi = {
     }),
 }
 
+// ── Bloqueios (folgas/feriados) ───────────────────────────────────────────────
+export const bloqueiosApi = {
+  list: (token: string) =>
+    request<import('./types').Bloqueio[]>('/api/bloqueios', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  create: (token: string, body: { dataInicio: string; dataFim?: string; descricao?: string }) =>
+    request<import('./types').Bloqueio>('/api/bloqueios', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }),
+  remove: (token: string, id: string) =>
+    request<void>(`/api/bloqueios/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+}
+
 // ── WhatsApp (conexão da instância) ───────────────────────────────────────────
 export const whatsappApi = {
   status: (token: string) =>

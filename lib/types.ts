@@ -41,6 +41,13 @@ export interface Configuracao {
   aprovacaoManual: boolean
 }
 
+export interface Bloqueio {
+  id: string
+  dataInicio: string // yyyy-mm-dd
+  dataFim: string
+  descricao: string | null
+}
+
 export interface ConfiguracaoPayload {
   nome: string
   horarioAbertura: number
