@@ -41,6 +41,20 @@ export interface Configuracao {
   aprovacaoManual: boolean
 }
 
+export interface ServicoContagem {
+  servico: string
+  total: number
+}
+
+export interface Relatorio {
+  proximos7Dias: number
+  realizados30Dias: number
+  faltas30Dias: number
+  cancelados30Dias: number
+  taxaFaltaPct: number
+  servicosTop: ServicoContagem[]
+}
+
 export interface Bloqueio {
   id: string
   dataInicio: string // yyyy-mm-dd

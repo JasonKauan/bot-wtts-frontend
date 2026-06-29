@@ -13,6 +13,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/agenda') ||
     pathname.startsWith('/solicitacoes') ||
     pathname.startsWith('/folgas') ||
+    pathname.startsWith('/relatorios') ||
     pathname.startsWith('/conectar') ||
     pathname.startsWith('/profissionais') ||
     pathname.startsWith('/servicos') ||
@@ -37,6 +38,7 @@ export const config = {
     '/agenda/:path*',
     '/solicitacoes/:path*',
     '/folgas/:path*',
+    '/relatorios/:path*',
     '/conectar/:path*',
     '/profissionais/:path*',
     '/servicos/:path*',

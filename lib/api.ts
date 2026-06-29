@@ -224,6 +224,14 @@ export const adminApi = {
     }),
 }
 
+// ── Relatórios ────────────────────────────────────────────────────────────────
+export const relatoriosApi = {
+  get: (token: string) =>
+    request<import('./types').Relatorio>('/api/relatorios', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+}
+
 // ── Bloqueios (folgas/feriados) ───────────────────────────────────────────────
 export const bloqueiosApi = {
   list: (token: string) =>
