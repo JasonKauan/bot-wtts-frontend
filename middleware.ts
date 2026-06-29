@@ -11,6 +11,7 @@ export function middleware(request: NextRequest) {
   const isPanel =
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/agenda') ||
+    pathname.startsWith('/solicitacoes') ||
     pathname.startsWith('/conectar') ||
     pathname.startsWith('/profissionais') ||
     pathname.startsWith('/servicos') ||
@@ -33,6 +34,7 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/agenda/:path*',
+    '/solicitacoes/:path*',
     '/conectar/:path*',
     '/profissionais/:path*',
     '/servicos/:path*',

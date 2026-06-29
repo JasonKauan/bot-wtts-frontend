@@ -77,6 +77,15 @@ export const agendamentosApi = {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` },
     }),
+  recusar: (token: string, id: string) =>
+    request<void>(`/api/agendamentos/${id}/recusar`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  pendentes: (token: string) =>
+    request<import('./types').Agendamento[]>('/api/agendamentos/pendentes', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
 }
 
 // ── Profissionais ─────────────────────────────────────────────────────────────

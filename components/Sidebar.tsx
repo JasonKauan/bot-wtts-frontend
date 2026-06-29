@@ -1,16 +1,19 @@
 'use client'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import { agendamentosApi } from '@/lib/api'
 import ThemeToggle from '@/components/ThemeToggle'
 import {
   LayoutDashboard, CalendarDays, Users, Scissors, CreditCard,
-  Settings, MessageSquare, LogOut, CalendarCheck,
+  Settings, MessageSquare, LogOut, CalendarCheck, Inbox,
 } from 'lucide-react'
 
 const links = [
   { href: '/dashboard',     label: 'Dashboard',         icon: LayoutDashboard },
   { href: '/agenda',        label: 'Agenda',            icon: CalendarDays },
+  { href: '/solicitacoes',  label: 'Solicitações',      icon: Inbox },
   { href: '/conectar',      label: 'Conectar WhatsApp', icon: MessageSquare },
   { href: '/profissionais', label: 'Profissionais',     icon: Users },
   { href: '/servicos',      label: 'Serviços',          icon: Scissors },
@@ -21,7 +24,19 @@ const links = [
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
-  const { logout } = useAuth()
+  const { token, logout } = useAuth()
+  const [pendentes, setPendentes] = useState(0)
+
+  useEffect(() => {
+    if (!token) return
+    let vivo = true
+    const carregar = () => agendamentosApi.pendentes(token)
+      .then(l => { if (vivo) setPendentes(l.length) })
+      .catch(() => {})
+    carregar()
+    const t = setInterval(carregar, 30000) // atualiza a cada 30s
+    return () => { vivo = false; clearInterval(t) }
+  }, [token])
 
   function handleLogout() {
     logout()
@@ -52,7 +67,12 @@ export default function Sidebar() {
               }`}
             >
               <Icon size={18} className="shrink-0" />
-              {l.label}
+              <span className="flex-1">{l.label}</span>
+              {l.href === '/solicitacoes' && pendentes > 0 && (
+                <span className="grid place-items-center min-w-5 h-5 px-1.5 rounded-full bg-danger text-white text-xs font-bold">
+                  {pendentes}
+                </span>
+              )}
             </Link>
           )
         })}

@@ -38,6 +38,7 @@ export interface Configuracao {
   almocoInicio: number | null
   almocoFim: number | null
   diasFuncionamento: string // ISO "1,2,3,4,5,6,7"
+  aprovacaoManual: boolean
 }
 
 export interface ConfiguracaoPayload {
@@ -48,6 +49,7 @@ export interface ConfiguracaoPayload {
   almocoInicio: number | null
   almocoFim: number | null
   diasFuncionamento: string
+  aprovacaoManual: boolean
 }
 
 export interface AuthResponse {

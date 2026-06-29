@@ -28,6 +28,7 @@ export default function ConfiguracoesPage() {
   const [almocoInicio, setAlmocoInicio] = useState(12)
   const [almocoFim, setAlmocoFim] = useState(13)
   const [dias, setDias] = useState<number[]>([1, 2, 3, 4, 5, 6, 7])
+  const [aprovacaoManual, setAprovacaoManual] = useState(false)
   const [saving, setSaving] = useState(false)
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState('')
@@ -44,6 +45,7 @@ export default function ConfiguracoesPage() {
       if (c.almocoInicio != null) setAlmocoInicio(c.almocoInicio)
       if (c.almocoFim != null) setAlmocoFim(c.almocoFim)
       setDias(parseDias(c.diasFuncionamento))
+      setAprovacaoManual(c.aprovacaoManual)
     })
   }, [token])
 
@@ -63,6 +65,7 @@ export default function ConfiguracoesPage() {
         almocoInicio: temAlmoco ? almocoInicio : null,
         almocoFim: temAlmoco ? almocoFim : null,
         diasFuncionamento: dias.join(','),
+        aprovacaoManual,
       })
       setConfig(updated)
       setSucesso(true)
@@ -141,6 +144,19 @@ export default function ConfiguracoesPage() {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" checked={aprovacaoManual} onChange={e => setAprovacaoManual(e.target.checked)} className="accent-primary mt-1 h-4 w-4" />
+              <span>
+                <span className="block text-sm font-medium text-foreground">Aprovar agendamentos na mão</span>
+                <span className="block text-xs text-muted mt-0.5">
+                  Ligado: cada pedido do cliente entra na aba <b>Solicitações</b> e você Aceita ou Recusa (o cliente é avisado no WhatsApp).<br />
+                  Desligado: o bot confirma na hora, sozinho.
+                </span>
+              </span>
+            </label>
           </div>
 
           {erro && <p className="text-danger text-sm">{erro}</p>}
