@@ -62,6 +62,15 @@ export const agendaApi = {
 
 // ── Agendamentos ──────────────────────────────────────────────────────────────
 export const agendamentosApi = {
+  criar: (token: string, body: {
+    clienteNome: string; clienteTelefone?: string; servicoId: string;
+    profissionalId?: string; data: string; hora: string
+  }) =>
+    request<import('./types').Agendamento>('/api/agendamentos', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }),
   cancelar: (token: string, id: string) =>
     request<void>(`/api/agendamentos/${id}/cancelar`, {
       method: 'PATCH',

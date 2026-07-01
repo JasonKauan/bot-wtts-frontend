@@ -1,9 +1,9 @@
 'use client'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { agendaApi, agendamentosApi, profissionaisApi } from '@/lib/api'
-import type { Agendamento, Profissional } from '@/lib/types'
-import { ChevronLeft, ChevronRight, Check, X, UserX } from 'lucide-react'
+import { agendaApi, agendamentosApi, profissionaisApi, servicosApi } from '@/lib/api'
+import type { Agendamento, Profissional, Servico } from '@/lib/types'
+import { ChevronLeft, ChevronRight, Check, X, UserX, Plus, Loader2 } from 'lucide-react'
 
 const STATUS_COLOR: Record<string, string> = {
   CONFIRMADO:     'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',
@@ -28,12 +28,15 @@ export default function AgendaPage() {
   const [filtroProf, setFiltroProf]       = useState<string>('')
   const [loading, setLoading]             = useState(true)
   const [novoBadge, setNovoBadge]         = useState(false)
+  const [servicos, setServicos]           = useState<Servico[]>([])
+  const [modalNovo, setModalNovo]         = useState(false)
   const prevCount = useRef<number>(-1)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const fetchProfissionais = useCallback(async () => {
     if (!token) return
     try { setProfissionais(await profissionaisApi.list(token)) } catch {}
+    try { setServicos(await servicosApi.list(token)) } catch {}
   }, [token])
 
   const fetchAgenda = useCallback(async (silent = false) => {
@@ -80,6 +83,12 @@ export default function AgendaPage() {
         </div>
 
         <div className="flex gap-2 flex-wrap items-center">
+          <button
+            onClick={() => setModalNovo(true)}
+            className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-semibold px-4 py-2 rounded-lg transition"
+          >
+            <Plus size={16} /> Novo agendamento
+          </button>
           {profissionais.length > 0 && (
             <select
               value={filtroProf}
@@ -135,6 +144,112 @@ export default function AgendaPage() {
       )}
 
       <p className="text-xs text-muted mt-4 text-right">Atualiza automaticamente a cada 30s</p>
+
+      {modalNovo && (
+        <NovoAgendamentoModal
+          token={token}
+          dataInicial={data}
+          servicos={servicos}
+          profissionais={profissionais}
+          onClose={() => setModalNovo(false)}
+          onDone={() => { setModalNovo(false); fetchAgenda(true) }}
+        />
+      )}
+    </div>
+  )
+}
+
+function NovoAgendamentoModal({ token, dataInicial, servicos, profissionais, onClose, onDone }: {
+  token: string | null
+  dataInicial: string
+  servicos: Servico[]
+  profissionais: Profissional[]
+  onClose: () => void
+  onDone: () => void
+}) {
+  const inputCls = 'w-full bg-card border border-input rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition'
+  const [nome, setNome] = useState('')
+  const [telefone, setTelefone] = useState('')
+  const [servicoId, setServicoId] = useState(servicos[0]?.id ?? '')
+  const [profissionalId, setProfissionalId] = useState('')
+  const [dataAg, setDataAg] = useState(dataInicial)
+  const [hora, setHora] = useState('')
+  const [erro, setErro] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function salvar(e: React.FormEvent) {
+    e.preventDefault()
+    if (!token || !servicoId || !hora) return
+    setSaving(true); setErro('')
+    try {
+      await agendamentosApi.criar(token, {
+        clienteNome: nome.trim(),
+        clienteTelefone: telefone.trim() || undefined,
+        servicoId,
+        profissionalId: profissionalId || undefined,
+        data: dataAg,
+        hora,
+      })
+      onDone()
+    } catch (err: unknown) {
+      setErro(err instanceof Error ? err.message : 'Erro ao agendar')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={onClose}>
+      <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-card p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-foreground">Novo agendamento</h3>
+          <button onClick={onClose} className="text-muted hover:text-foreground"><X size={18} /></button>
+        </div>
+
+        <form onSubmit={salvar} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Nome do cliente</label>
+            <input value={nome} onChange={e => setNome(e.target.value)} required className={inputCls} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">WhatsApp <span className="text-muted font-normal">(opcional — pra receber lembretes)</span></label>
+            <input value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="55DDDNUMERO" className={inputCls} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Serviço</label>
+            <select value={servicoId} onChange={e => setServicoId(e.target.value)} required className={inputCls}>
+              {servicos.map(s => <option key={s.id} value={s.id}>{s.nome} ({s.duracaoMinutos} min)</option>)}
+            </select>
+          </div>
+          {profissionais.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Profissional <span className="text-muted font-normal">(opcional)</span></label>
+              <select value={profissionalId} onChange={e => setProfissionalId(e.target.value)} className={inputCls}>
+                <option value="">Sem preferência</option>
+                {profissionais.filter(p => p.ativo).map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+              </select>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Dia</label>
+              <input type="date" value={dataAg} onChange={e => setDataAg(e.target.value)} required className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Horário</label>
+              <input type="time" value={hora} onChange={e => setHora(e.target.value)} required className={inputCls} />
+            </div>
+          </div>
+
+          {erro && <p className="text-danger text-sm">{erro}</p>}
+
+          <button type="submit" disabled={saving || servicos.length === 0} className="w-full inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold py-3 rounded-xl transition disabled:opacity-50">
+            {saving && <Loader2 size={16} className="animate-spin" />}
+            {saving ? 'Agendando...' : 'Agendar'}
+          </button>
+          {servicos.length === 0 && <p className="text-xs text-muted text-center">Cadastre um serviço primeiro (aba Serviços).</p>}
+        </form>
+      </div>
     </div>
   )
 }
