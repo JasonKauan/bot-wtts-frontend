@@ -30,6 +30,16 @@ export default function ConectarPage() {
     } catch { /* ignore */ } finally { setCarregandoQr(false) }
   }, [token])
 
+  // Reset de verdade: logout + QR novo (cura o QR que "gera mas nunca conecta")
+  const resetarQr = useCallback(async () => {
+    if (!token) return
+    setCarregandoQr(true); setQr('')
+    try {
+      const r = await whatsappApi.reconectar(token)
+      setQr(r.qr || '')
+    } catch { /* ignore */ } finally { setCarregandoQr(false) }
+  }, [token])
+
   // status inicial; se não conectado, busca o QR
   useEffect(() => {
     let active = true
@@ -88,10 +98,10 @@ export default function ConectarPage() {
               )}
             </div>
 
-            <button onClick={buscarQr} disabled={carregandoQr} className="mt-5 inline-flex items-center gap-2 text-sm text-muted hover:text-foreground transition disabled:opacity-50">
+            <button onClick={resetarQr} disabled={carregandoQr} className="mt-5 inline-flex items-center gap-2 text-sm text-muted hover:text-foreground transition disabled:opacity-50">
               <RefreshCw size={15} className={carregandoQr ? 'animate-spin' : ''} /> Gerar novo QR
             </button>
-            <p className="text-xs text-muted mt-2">O QR atualiza sozinho e esta tela detecta a conexão automaticamente.</p>
+            <p className="text-xs text-muted mt-2">O QR atualiza sozinho e esta tela detecta a conexão automaticamente.<br />Escaneou e não conectou? Clique em <b>Gerar novo QR</b> e escaneie o novo.</p>
           </div>
         )}
       </div>

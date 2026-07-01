@@ -270,4 +270,10 @@ export const whatsappApi = {
     request<{ conectado: boolean; qr: string }>('/api/whatsapp/qr', {
       headers: { Authorization: `Bearer ${token}` },
     }),
+  /** Reset da sessão (logout + QR novo) — usar quando o QR gera mas nunca conecta. */
+  reconectar: (token: string) =>
+    request<{ conectado: boolean; qr: string }>('/api/whatsapp/reconectar', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
 }
