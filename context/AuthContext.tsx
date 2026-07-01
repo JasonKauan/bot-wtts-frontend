@@ -21,8 +21,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function login(t: string) {
     saveToken(t)
-    // Also set cookie so middleware can read it
-    document.cookie = `token=${t}; path=/; max-age=86400; SameSite=Lax`
+    // Also set cookie so middleware can read it (Secure em produção/HTTPS)
+    const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : ''
+    document.cookie = `token=${t}; path=/; max-age=86400; SameSite=Lax${secure}`
     setToken(t)
   }
 
