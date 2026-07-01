@@ -119,17 +119,17 @@ export const servicosApi = {
     request<import('./types').Servico[]>('/api/servicos', {
       headers: { Authorization: `Bearer ${token}` },
     }),
-  create: (token: string, nome: string, duracaoMinutos: number) =>
+  create: (token: string, nome: string, duracaoMinutos: number, preco: number | null = null) =>
     request<import('./types').Servico>('/api/servicos', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ nome, duracaoMinutos }),
+      body: JSON.stringify({ nome, duracaoMinutos, preco }),
     }),
-  update: (token: string, id: string, nome: string, duracaoMinutos: number) =>
+  update: (token: string, id: string, nome: string, duracaoMinutos: number, preco: number | null = null) =>
     request<import('./types').Servico>(`/api/servicos/${id}`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ nome, duracaoMinutos }),
+      body: JSON.stringify({ nome, duracaoMinutos, preco }),
     }),
   toggleAtivo: (token: string, id: string) =>
     request<import('./types').Servico>(`/api/servicos/${id}/ativo`, {
