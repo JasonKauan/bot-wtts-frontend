@@ -2,13 +2,15 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { whatsappApi } from '@/lib/api'
-import { MessageSquare, CheckCircle2, RefreshCw, Loader2 } from 'lucide-react'
+import { MessageSquare, CheckCircle2, RefreshCw, Loader2, Unplug } from 'lucide-react'
 
 export default function ConectarPage() {
   const { token } = useAuth()
   const [conectado, setConectado] = useState<boolean | null>(null)
   const [qr, setQr] = useState<string>('')
   const [carregandoQr, setCarregandoQr] = useState(false)
+  const [confirmaDesconectar, setConfirmaDesconectar] = useState(false)
+  const [desconectando, setDesconectando] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const checarStatus = useCallback(async () => {
@@ -38,6 +40,20 @@ export default function ConectarPage() {
       const r = await whatsappApi.reconectar(token)
       setQr(r.qr || '')
     } catch { /* ignore */ } finally { setCarregandoQr(false) }
+  }, [token])
+
+  // Desconectar o WhatsApp (logout): volta pra tela de QR pra parear de novo
+  const desconectar = useCallback(async () => {
+    if (!token) return
+    setDesconectando(true)
+    try {
+      const r = await whatsappApi.reconectar(token)
+      setConectado(false)
+      setQr(r.qr || '')
+    } catch { /* ignore */ } finally {
+      setDesconectando(false)
+      setConfirmaDesconectar(false)
+    }
   }, [token])
 
   // status inicial; se não conectado, busca o QR
@@ -78,6 +94,27 @@ export default function ConectarPage() {
             </span>
             <h2 className="text-lg font-semibold text-foreground">WhatsApp conectado</h2>
             <p className="text-sm text-muted mt-1">Seu bot está ativo e pronto para atender seus clientes.</p>
+
+            {!confirmaDesconectar ? (
+              <button
+                onClick={() => setConfirmaDesconectar(true)}
+                className="mt-6 inline-flex items-center gap-2 text-sm text-muted hover:text-danger border border-border hover:border-danger rounded-lg px-4 py-2 transition"
+              >
+                <Unplug size={15} /> Desconectar
+              </button>
+            ) : (
+              <div className="mt-6 w-full bg-danger-subtle border border-danger/30 rounded-xl p-4">
+                <p className="text-sm text-foreground mb-3">Desconectar o WhatsApp? O bot <b>para de atender</b> até você escanear o QR de novo.</p>
+                <div className="flex gap-2 justify-center">
+                  <button onClick={() => setConfirmaDesconectar(false)} className="text-sm border border-border rounded-lg px-4 py-2 text-muted hover:text-foreground transition">
+                    Voltar
+                  </button>
+                  <button onClick={desconectar} disabled={desconectando} className="inline-flex items-center gap-2 text-sm bg-danger hover:opacity-90 text-white font-semibold rounded-lg px-4 py-2 transition disabled:opacity-50">
+                    {desconectando && <Loader2 size={15} className="animate-spin" />} Sim, desconectar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center text-center">
@@ -94,7 +131,10 @@ export default function ConectarPage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={qr} alt="QR code do WhatsApp" className="h-full w-full object-contain" />
               ) : (
-                <span className="text-muted text-sm flex flex-col items-center gap-2"><Loader2 className="animate-spin" /> Gerando QR...</span>
+                <span className="text-muted text-sm flex flex-col items-center gap-2 px-3 text-center">
+                  <Loader2 className="animate-spin" /> Gerando QR...
+                  <span className="text-xs">No primeiro acesso pode levar até <b>2 minutos</b> (servidor acordando). Deixe esta tela aberta 😊</span>
+                </span>
               )}
             </div>
 
