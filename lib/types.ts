@@ -40,6 +40,16 @@ export interface Configuracao {
   almocoFim: number | null
   diasFuncionamento: string // ISO "1,2,3,4,5,6,7"
   aprovacaoManual: boolean
+  antecedenciaMinHoras: number
+}
+
+export interface ClienteCrm {
+  nome: string
+  telefone: string
+  visitas: number
+  faltas: number
+  ultimaVisita: string | null
+  proximoAgendamento: string | null
 }
 
 export interface ServicoContagem {
@@ -72,6 +82,7 @@ export interface ConfiguracaoPayload {
   almocoFim: number | null
   diasFuncionamento: string
   aprovacaoManual: boolean
+  antecedenciaMinHoras: number
 }
 
 export interface AuthResponse {

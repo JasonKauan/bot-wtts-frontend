@@ -29,6 +29,7 @@ export default function ConfiguracoesPage() {
   const [almocoFim, setAlmocoFim] = useState(13)
   const [dias, setDias] = useState<number[]>([1, 2, 3, 4, 5, 6, 7])
   const [aprovacaoManual, setAprovacaoManual] = useState(false)
+  const [antecedencia, setAntecedencia] = useState(0)
   const [saving, setSaving] = useState(false)
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState('')
@@ -46,6 +47,7 @@ export default function ConfiguracoesPage() {
       if (c.almocoFim != null) setAlmocoFim(c.almocoFim)
       setDias(parseDias(c.diasFuncionamento))
       setAprovacaoManual(c.aprovacaoManual)
+      setAntecedencia(c.antecedenciaMinHoras)
     })
   }, [token])
 
@@ -66,6 +68,7 @@ export default function ConfiguracoesPage() {
         almocoFim: temAlmoco ? almocoFim : null,
         diasFuncionamento: dias.join(','),
         aprovacaoManual,
+        antecedenciaMinHoras: antecedencia,
       })
       setConfig(updated)
       setSucesso(true)
@@ -157,6 +160,12 @@ export default function ConfiguracoesPage() {
                 </span>
               </span>
             </label>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Antecedência mínima pra cancelar/remarcar (horas)</label>
+            <input type="number" min={0} max={72} value={antecedencia} onChange={e => setAntecedencia(Number(e.target.value))} className={`w-24 ${inputCls}`} />
+            <p className="text-xs text-muted mt-1">0 = sem regra. Ex.: 2 = o cliente só consegue cancelar/remarcar pelo bot até 2 horas antes do horário.</p>
           </div>
 
           {erro && <p className="text-danger text-sm">{erro}</p>}

@@ -233,6 +233,14 @@ export const adminApi = {
     }),
 }
 
+// ── Clientes (CRM leve) ───────────────────────────────────────────────────────
+export const clientesApi = {
+  list: (token: string) =>
+    request<import('./types').ClienteCrm[]>('/api/clientes', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+}
+
 // ── Relatórios ────────────────────────────────────────────────────────────────
 export const relatoriosApi = {
   get: (token: string) =>
