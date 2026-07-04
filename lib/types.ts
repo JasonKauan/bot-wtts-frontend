@@ -154,7 +154,15 @@ export interface VendaLinha {
   valor: number
   comissaoValor: number
   origem: string // MANUAL | PIX
+  pago: boolean
   criadoEm: string
+}
+
+export interface Acerto {
+  vendedorId: string
+  vendedor: string
+  vendas: number
+  comissaoPendente: number
 }
 
 export interface RankingVendedor {
@@ -177,6 +185,7 @@ export interface CeoResumo {
 export interface MinhasVendas {
   vendasMes: number
   comissaoMes: number
+  comissaoPendente: number
   vendas: VendaLinha[]
 }
 

@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { adminApi } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
-import type { CeoResumo } from '@/lib/types'
-import { Crown, ArrowLeft, TrendingUp, TrendingDown, Trophy, Wallet, ShoppingCart, RefreshCw } from 'lucide-react'
+import type { CeoResumo, Acerto } from '@/lib/types'
+import { Crown, ArrowLeft, TrendingUp, TrendingDown, Trophy, Wallet, ShoppingCart, RefreshCw, Download, HandCoins, Check, Loader2 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,19 +15,45 @@ function brl(n: number): string {
 export default function CeoPage() {
   const { token } = useAuth()
   const [dados, setDados] = useState<CeoResumo | null>(null)
+  const [acertos, setAcertos] = useState<Acerto[]>([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState('')
+  const [aviso, setAviso] = useState('')
+  const [confirmando, setConfirmando] = useState<string | null>(null)
+  const [acertando, setAcertando] = useState(false)
 
   function fetchData() {
     if (!token) return
     setLoading(true); setErro('')
-    adminApi.ceoResumo(token)
-      .then(setDados)
+    Promise.all([adminApi.ceoResumo(token), adminApi.ceoAcerto(token)])
+      .then(([r, a]) => { setDados(r); setAcertos(a) })
       .catch((e: unknown) => setErro(e instanceof Error ? e.message : 'Erro ao carregar'))
       .finally(() => setLoading(false))
   }
 
   useEffect(fetchData, [token]) // eslint-disable-line
+
+  async function acertar(vendedorId: string, vendedor: string) {
+    if (!token) return
+    setAcertando(true)
+    try {
+      const r = await adminApi.ceoAcertar(token, vendedorId)
+      setAviso(`Comissões de ${vendedor} acertadas: ${r.vendasAcertadas} venda(s), ${brl(r.total)}.`)
+      setTimeout(() => setAviso(''), 6000)
+      fetchData()
+    } catch (e: unknown) {
+      setErro(e instanceof Error ? e.message : 'Erro ao acertar')
+    } finally {
+      setAcertando(false)
+      setConfirmando(null)
+    }
+  }
+
+  async function exportar() {
+    if (!token) return
+    try { await adminApi.baixarVendasCsv(token) }
+    catch (e: unknown) { setErro(e instanceof Error ? e.message : 'Erro ao exportar') }
+  }
 
   const variacao = dados && dados.receitaMesAnterior > 0
     ? Math.round(((dados.receitaMes - dados.receitaMesAnterior) / dados.receitaMesAnterior) * 100)
@@ -47,6 +73,9 @@ export default function CeoPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <button onClick={exportar} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
+              <Download size={15} /> Exportar CSV
+            </button>
             <button onClick={fetchData} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
               <RefreshCw size={15} /> Atualizar
             </button>
@@ -59,6 +88,7 @@ export default function CeoPage() {
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         {erro && <p className="text-danger text-sm mb-4">{erro}</p>}
+        {aviso && <p className="text-primary text-sm mb-4 flex items-center gap-1"><Check size={15} /> {aviso}</p>}
         {loading ? <p className="text-muted">Carregando...</p> : dados && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
@@ -83,6 +113,43 @@ export default function CeoPage() {
                 <div className="text-xs text-muted mt-1">soma das comissões do mês</div>
               </div>
             </div>
+
+            {acertos.length > 0 && (
+              <div className="bg-card border border-border rounded-xl shadow-card overflow-hidden mb-6">
+                <div className="px-4 py-3 border-b border-border font-medium text-foreground flex items-center gap-2">
+                  <HandCoins size={16} className="text-primary" /> Acerto de comissões
+                  <span className="text-xs text-muted font-normal">— o que você ainda deve pra cada vendedor</span>
+                </div>
+                <div className="divide-y divide-border">
+                  {acertos.map(a => (
+                    <div key={a.vendedorId} className="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+                      <div>
+                        <div className="text-foreground font-medium">{a.vendedor}</div>
+                        <div className="text-xs text-muted">{a.vendas} venda{a.vendas === 1 ? '' : 's'} sem acerto</div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-foreground font-bold">{brl(a.comissaoPendente)}</span>
+                        {confirmando === a.vendedorId ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted">Pagou {brl(a.comissaoPendente)}?</span>
+                            <button onClick={() => acertar(a.vendedorId, a.vendedor)} disabled={acertando}
+                              className="inline-flex items-center gap-1 text-sm bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-lg px-3 py-1.5 transition disabled:opacity-50">
+                              {acertando ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Sim, marcar pago
+                            </button>
+                            <button onClick={() => setConfirmando(null)} className="text-sm text-muted hover:text-foreground transition">Não</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setConfirmando(a.vendedorId)}
+                            className="text-sm border border-border rounded-lg px-3 py-1.5 text-muted hover:text-primary hover:border-primary transition">
+                            Marcar como pago
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-card border border-border rounded-xl shadow-card overflow-hidden">

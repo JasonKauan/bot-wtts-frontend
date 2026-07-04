@@ -152,8 +152,11 @@ export default function AdminPage() {
               💰 <b>Suas vendas este mês:</b> {minhas.vendasMes} venda{minhas.vendasMes === 1 ? '' : 's'}
             </div>
             <div className="text-sm text-foreground">
-              Comissão acumulada: <b className="text-primary">{Number(minhas.comissaoMes).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</b>
+              Comissão do mês: <b className="text-primary">{Number(minhas.comissaoMes).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</b>
               {me.comissaoPct != null && <span className="text-muted"> ({Number(me.comissaoPct).toFixed(0)}% por venda)</span>}
+            </div>
+            <div className="text-sm text-foreground">
+              A receber: <b className="text-primary">{Number(minhas.comissaoPendente).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</b>
             </div>
           </div>
         )}

@@ -243,6 +243,29 @@ export const adminApi = {
     request<import('./types').CeoResumo>('/api/admin/ceo/resumo', {
       headers: { Authorization: `Bearer ${token}` },
     }),
+  ceoAcerto: (token: string) =>
+    request<import('./types').Acerto[]>('/api/admin/ceo/acerto', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  ceoAcertar: (token: string, vendedorId: string) =>
+    request<{ vendasAcertadas: number; total: number }>(`/api/admin/ceo/acerto/${vendedorId}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  /** Baixa o CSV de vendas (download direto no navegador). */
+  baixarVendasCsv: async (token: string) => {
+    const res = await fetch(`${API}/api/admin/ceo/vendas.csv`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) throw new Error('Falha ao exportar CSV')
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'vendas.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  },
   vendedores: (token: string) =>
     request<import('./types').Vendedor[]>('/api/admin/vendedores', {
       headers: { Authorization: `Bearer ${token}` },
