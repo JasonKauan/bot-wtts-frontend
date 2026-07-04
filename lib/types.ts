@@ -130,6 +130,56 @@ export interface SenhaResponse {
   senhaProvisoria: string | null
 }
 
+// ── Painel CEO / vendedores ──────────────────────────────────────────────────
+export interface AdminMe {
+  nome: string | null
+  email: string
+  role: 'SUPERADMIN' | 'VENDEDOR'
+  comissaoPct: number | null
+}
+
+export interface Vendedor {
+  id: string
+  nome: string | null
+  email: string
+  comissaoPct: number
+  ativo: boolean
+  criadoEm: string
+}
+
+export interface VendaLinha {
+  tenantNome: string
+  vendedor: string | null
+  plano: string
+  valor: number
+  comissaoValor: number
+  origem: string // MANUAL | PIX
+  criadoEm: string
+}
+
+export interface RankingVendedor {
+  vendedor: string
+  vendas: number
+  receita: number
+  comissao: number
+}
+
+export interface CeoResumo {
+  receitaMes: number
+  vendasMes: number
+  comissoesMes: number
+  receitaMesAnterior: number
+  vendasMesAnterior: number
+  ranking: RankingVendedor[]
+  vendasRecentes: VendaLinha[]
+}
+
+export interface MinhasVendas {
+  vendasMes: number
+  comissaoMes: number
+  vendas: VendaLinha[]
+}
+
 export interface AuditoriaItem {
   adminEmail: string | null
   acao: string

@@ -231,6 +231,34 @@ export const adminApi = {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     }),
+  me: (token: string) =>
+    request<import('./types').AdminMe>('/api/admin/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  minhasVendas: (token: string) =>
+    request<import('./types').MinhasVendas>('/api/admin/minhas-vendas', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  ceoResumo: (token: string) =>
+    request<import('./types').CeoResumo>('/api/admin/ceo/resumo', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  vendedores: (token: string) =>
+    request<import('./types').Vendedor[]>('/api/admin/vendedores', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  criarVendedor: (token: string, body: { nome: string; email: string; senha: string; comissaoPct: number }) =>
+    request<import('./types').Vendedor>('/api/admin/vendedores', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }),
+  editarVendedor: (token: string, id: string, body: { nome?: string; comissaoPct?: number; ativo?: boolean; senha?: string }) =>
+    request<import('./types').Vendedor>(`/api/admin/vendedores/${id}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }),
 }
 
 // ── Clientes (CRM leve) ───────────────────────────────────────────────────────

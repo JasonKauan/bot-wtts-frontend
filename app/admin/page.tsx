@@ -4,10 +4,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { adminApi } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
-import type { ClienteResumo, PlanoNome, PlanoPayload } from '@/lib/types'
+import type { ClienteResumo, PlanoNome, PlanoPayload, AdminMe, MinhasVendas } from '@/lib/types'
 import {
   ShieldCheck, Search, LogOut, RefreshCw, Loader2, Check, X,
-  UserPlus, CreditCard, KeyRound, Ban, Power, Copy, ScrollText, Bell,
+  UserPlus, CreditCard, KeyRound, Ban, Power, Copy, ScrollText, Bell, Crown, Users,
 } from 'lucide-react'
 
 const inputCls =
@@ -28,6 +28,17 @@ export default function AdminPage() {
   const [confirmAtivo, setConfirmAtivo] = useState<ClienteResumo | null>(null)
   const [acting, setActing] = useState(false)
   const [aviso, setAviso] = useState('')
+  const [me, setMe] = useState<AdminMe | null>(null)
+  const [minhas, setMinhas] = useState<MinhasVendas | null>(null)
+  const ceo = me?.role === 'SUPERADMIN'
+
+  useEffect(() => {
+    if (!token) return
+    adminApi.me(token).then(m => {
+      setMe(m)
+      if (m.role === 'VENDEDOR') adminApi.minhasVendas(token).then(setMinhas).catch(() => {})
+    }).catch(() => {})
+  }, [token])
 
   async function fetchData() {
     if (!token) return
@@ -110,13 +121,23 @@ export default function AdminPage() {
             </span>
             <div>
               <h1 className="font-bold text-foreground leading-tight">AgendaBot — Admin</h1>
-              <p className="text-xs text-muted">Back-office</p>
+              <p className="text-xs text-muted">{me ? (me.nome || me.email) : 'Back-office'}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/admin/auditoria" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
-              <ScrollText size={15} /> Histórico
-            </Link>
+            {ceo && (
+              <>
+                <Link href="/admin/ceo" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
+                  <Crown size={15} /> Visão CEO
+                </Link>
+                <Link href="/admin/vendedores" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
+                  <Users size={15} /> Vendedores
+                </Link>
+                <Link href="/admin/auditoria" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
+                  <ScrollText size={15} /> Histórico
+                </Link>
+              </>
+            )}
             <button onClick={sair} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
               <LogOut size={15} /> Sair
             </button>
@@ -125,6 +146,17 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
+        {me?.role === 'VENDEDOR' && minhas && (
+          <div className="bg-card border border-border rounded-xl shadow-card p-4 mb-6 flex items-center justify-between flex-wrap gap-3">
+            <div className="text-sm text-foreground">
+              💰 <b>Suas vendas este mês:</b> {minhas.vendasMes} venda{minhas.vendasMes === 1 ? '' : 's'}
+            </div>
+            <div className="text-sm text-foreground">
+              Comissão acumulada: <b className="text-primary">{Number(minhas.comissaoMes).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</b>
+              {me.comissaoPct != null && <span className="text-muted"> ({Number(me.comissaoPct).toFixed(0)}% por venda)</span>}
+            </div>
+          </div>
+        )}
         {!loading && clientes.length > 0 && <StatsCards clientes={clientes} />}
 
         <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
@@ -141,9 +173,11 @@ export default function AdminPage() {
                 className="w-56 bg-card border border-input rounded-lg pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition"
               />
             </div>
-            <button onClick={dispararLembretes} title="Dispara o job de lembretes agora (teste)" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground border border-border rounded-lg px-3 py-2 transition">
-              <Bell size={15} /> Testar lembretes
-            </button>
+            {ceo && (
+              <button onClick={dispararLembretes} title="Dispara o job de lembretes agora (teste)" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground border border-border rounded-lg px-3 py-2 transition">
+                <Bell size={15} /> Testar lembretes
+              </button>
+            )}
             <button onClick={fetchData} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground border border-border rounded-lg px-3 py-2 transition">
               <RefreshCw size={15} /> Atualizar
             </button>
