@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { adminApi } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
-import type { CeoResumo, Acerto } from '@/lib/types'
-import { Crown, ArrowLeft, TrendingUp, TrendingDown, Trophy, Wallet, ShoppingCart, RefreshCw, Download, HandCoins, Check, Loader2 } from 'lucide-react'
+import type { CeoResumo, Acerto, AcertoHistorico } from '@/lib/types'
+import { Crown, ArrowLeft, TrendingUp, TrendingDown, Trophy, Wallet, ShoppingCart, RefreshCw, Download, HandCoins, Check, Loader2, History } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,29 +16,41 @@ export default function CeoPage() {
   const { token } = useAuth()
   const [dados, setDados] = useState<CeoResumo | null>(null)
   const [acertos, setAcertos] = useState<Acerto[]>([])
+  const [historico, setHistorico] = useState<AcertoHistorico[]>([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState('')
   const [aviso, setAviso] = useState('')
   const [confirmando, setConfirmando] = useState<string | null>(null)
+  const [valorAcerto, setValorAcerto] = useState('') // valor digitado (pode ser parcial)
   const [acertando, setAcertando] = useState(false)
 
   function fetchData() {
     if (!token) return
     setLoading(true); setErro('')
-    Promise.all([adminApi.ceoResumo(token), adminApi.ceoAcerto(token)])
-      .then(([r, a]) => { setDados(r); setAcertos(a) })
+    Promise.all([adminApi.ceoResumo(token), adminApi.ceoAcerto(token), adminApi.ceoAcertos(token)])
+      .then(([r, a, h]) => { setDados(r); setAcertos(a); setHistorico(h) })
       .catch((e: unknown) => setErro(e instanceof Error ? e.message : 'Erro ao carregar'))
       .finally(() => setLoading(false))
   }
 
   useEffect(fetchData, [token]) // eslint-disable-line
 
-  async function acertar(vendedorId: string, vendedor: string) {
+  function abrirConfirmacao(a: Acerto) {
+    setConfirmando(a.vendedorId)
+    setValorAcerto(String(a.comissaoPendente.toFixed(2)).replace('.', ','))
+  }
+
+  async function acertar(a: Acerto) {
     if (!token) return
-    setAcertando(true)
+    const valor = Number(valorAcerto.replace(',', '.'))
+    if (!valor || valor <= 0) { setErro('Informe um valor maior que zero.'); return }
+    if (valor > a.comissaoPendente + 0.001) { setErro(`O valor não pode passar do pendente (${brl(a.comissaoPendente)}).`); return }
+    setAcertando(true); setErro('')
     try {
-      const r = await adminApi.ceoAcertar(token, vendedorId)
-      setAviso(`Comissões de ${vendedor} acertadas: ${r.vendasAcertadas} venda(s), ${brl(r.total)}.`)
+      const r = await adminApi.ceoAcertar(token, a.vendedorId, valor)
+      setAviso(r.pendenteRestante > 0
+        ? `Pago ${brl(r.total)} pra ${a.vendedor} — ainda ficou devendo ${brl(r.pendenteRestante)}.`
+        : `Comissões de ${a.vendedor} quitadas: ${brl(r.total)}.`)
       setTimeout(() => setAviso(''), 6000)
       fetchData()
     } catch (e: unknown) {
@@ -130,21 +142,49 @@ export default function CeoPage() {
                       <div className="flex items-center gap-3">
                         <span className="text-foreground font-bold">{brl(a.comissaoPendente)}</span>
                         {confirmando === a.vendedorId ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted">Pagou {brl(a.comissaoPendente)}?</span>
-                            <button onClick={() => acertar(a.vendedorId, a.vendedor)} disabled={acertando}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs text-muted">Quanto você pagou? (pode ser uma parte)</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-sm text-muted">R$</span>
+                              <input value={valorAcerto} onChange={e => setValorAcerto(e.target.value)} inputMode="decimal"
+                                className="w-24 bg-card border border-input rounded-lg px-2 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary transition" />
+                            </div>
+                            <button onClick={() => acertar(a)} disabled={acertando}
                               className="inline-flex items-center gap-1 text-sm bg-primary hover:bg-primary-hover text-primary-foreground font-semibold rounded-lg px-3 py-1.5 transition disabled:opacity-50">
-                              {acertando ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Sim, marcar pago
+                              {acertando ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Confirmar pagamento
                             </button>
-                            <button onClick={() => setConfirmando(null)} className="text-sm text-muted hover:text-foreground transition">Não</button>
+                            <button onClick={() => setConfirmando(null)} className="text-sm text-muted hover:text-foreground transition">Cancelar</button>
                           </div>
                         ) : (
-                          <button onClick={() => setConfirmando(a.vendedorId)}
+                          <button onClick={() => abrirConfirmacao(a)}
                             className="text-sm border border-border rounded-lg px-3 py-1.5 text-muted hover:text-primary hover:border-primary transition">
                             Marcar como pago
                           </button>
                         )}
                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {historico.length > 0 && (
+              <div className="bg-card border border-border rounded-xl shadow-card overflow-hidden mb-6">
+                <div className="px-4 py-3 border-b border-border font-medium text-foreground flex items-center gap-2">
+                  <History size={16} className="text-primary" /> Histórico de acertos
+                  <span className="text-xs text-muted font-normal">— pagamentos já feitos aos vendedores</span>
+                </div>
+                <div className="divide-y divide-border">
+                  {historico.map((h, i) => (
+                    <div key={i} className="px-4 py-2.5 flex items-center justify-between gap-3 text-sm">
+                      <div className="min-w-0">
+                        <div className="text-foreground font-medium truncate">{h.vendedor}</div>
+                        <div className="text-xs text-muted">
+                          {fmtDataHora(h.criadoEm)} · {h.vendasQuitadas} venda{h.vendasQuitadas === 1 ? '' : 's'} quitada{h.vendasQuitadas === 1 ? '' : 's'}
+                          {h.pendenteApos > 0 && <span className="text-danger"> · ficou devendo {brl(h.pendenteApos)}</span>}
+                        </div>
+                      </div>
+                      <div className="text-foreground font-semibold shrink-0">{brl(h.valor)}</div>
                     </div>
                   ))}
                 </div>
@@ -218,4 +258,11 @@ export default function CeoPage() {
 function fmtData(iso: string): string {
   const d = new Date(iso)
   return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+}
+
+function fmtDataHora(iso: string): string {
+  const d = new Date(iso)
+  return isNaN(d.getTime()) ? '—'
+    : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }

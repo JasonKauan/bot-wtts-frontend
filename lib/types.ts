@@ -18,6 +18,21 @@ export interface Profissional {
   nome: string
   ativo: boolean
   criadoEm: string
+  // Grade própria (nulos = segue o horário do estabelecimento)
+  horarioAbertura: number | null
+  horarioFechamento: number | null
+  almocoInicio: number | null
+  almocoFim: number | null
+  diasTrabalho: string | null // ISO "1,2,...,7"
+}
+
+export interface ProfissionalPayload {
+  nome: string
+  horarioAbertura?: number | null
+  horarioFechamento?: number | null
+  almocoInicio?: number | null
+  almocoFim?: number | null
+  diasTrabalho?: string | null
 }
 
 export interface Servico {
@@ -163,6 +178,14 @@ export interface Acerto {
   vendedor: string
   vendas: number
   comissaoPendente: number
+}
+
+export interface AcertoHistorico {
+  vendedor: string
+  valor: number
+  vendasQuitadas: number
+  pendenteApos: number
+  criadoEm: string
 }
 
 export interface RankingVendedor {

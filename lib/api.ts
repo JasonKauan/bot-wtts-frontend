@@ -103,17 +103,17 @@ export const profissionaisApi = {
     request<import('./types').Profissional[]>('/api/profissionais', {
       headers: { Authorization: `Bearer ${token}` },
     }),
-  create: (token: string, nome: string) =>
+  create: (token: string, body: import('./types').ProfissionalPayload) =>
     request<import('./types').Profissional>('/api/profissionais', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ nome }),
+      body: JSON.stringify(body),
     }),
-  update: (token: string, id: string, nome: string) =>
+  update: (token: string, id: string, body: import('./types').ProfissionalPayload) =>
     request<import('./types').Profissional>(`/api/profissionais/${id}`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ nome }),
+      body: JSON.stringify(body),
     }),
   toggleAtivo: (token: string, id: string) =>
     request<import('./types').Profissional>(`/api/profissionais/${id}/ativo`, {
@@ -247,9 +247,15 @@ export const adminApi = {
     request<import('./types').Acerto[]>('/api/admin/ceo/acerto', {
       headers: { Authorization: `Bearer ${token}` },
     }),
-  ceoAcertar: (token: string, vendedorId: string) =>
-    request<{ vendasAcertadas: number; total: number }>(`/api/admin/ceo/acerto/${vendedorId}`, {
+  /** valor omitido = quita tudo; com valor = acerto parcial. */
+  ceoAcertar: (token: string, vendedorId: string, valor?: number) =>
+    request<{ vendasAcertadas: number; total: number; pendenteRestante: number }>(`/api/admin/ceo/acerto/${vendedorId}`, {
       method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ valor: valor ?? null }),
+    }),
+  ceoAcertos: (token: string) =>
+    request<import('./types').AcertoHistorico[]>('/api/admin/ceo/acertos', {
       headers: { Authorization: `Bearer ${token}` },
     }),
   /** Baixa o CSV de vendas (download direto no navegador). */
