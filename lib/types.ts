@@ -57,6 +57,7 @@ export interface Configuracao {
   aprovacaoManual: boolean
   antecedenciaMinHoras: number
   resumoDiario: boolean
+  faltasParaAprovacao: number // 0 = escudo anti-faltão desligado
 }
 
 export interface ClienteCrm {
@@ -73,6 +74,12 @@ export interface ServicoContagem {
   total: number
 }
 
+export interface FaturamentoLinha {
+  nome: string
+  atendimentos: number
+  receita: number
+}
+
 export interface Relatorio {
   proximos7Dias: number
   realizados30Dias: number
@@ -80,6 +87,9 @@ export interface Relatorio {
   cancelados30Dias: number
   taxaFaltaPct: number
   servicosTop: ServicoContagem[]
+  receita30Dias: number
+  receitaPorServico: FaturamentoLinha[]
+  receitaPorProfissional: FaturamentoLinha[]
 }
 
 export interface Bloqueio {
@@ -102,6 +112,7 @@ export interface ConfiguracaoPayload {
   aprovacaoManual: boolean
   antecedenciaMinHoras: number
   resumoDiario: boolean
+  faltasParaAprovacao: number
 }
 
 export interface AuthResponse {

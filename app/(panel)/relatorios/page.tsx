@@ -3,7 +3,11 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { relatoriosApi } from '@/lib/api'
 import type { Relatorio } from '@/lib/types'
-import { CalendarClock, CheckCircle2, UserX, XCircle, TrendingUp } from 'lucide-react'
+import { CalendarClock, CheckCircle2, UserX, XCircle, TrendingUp, Wallet, Download } from 'lucide-react'
+
+function brl(n: number): string {
+  return Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
 
 export default function RelatoriosPage() {
   const { token } = useAuth()
@@ -20,7 +24,7 @@ export default function RelatoriosPage() {
   }, [token])
 
   if (loading) return <div className="text-muted">Carregando...</div>
-  if (erro) return <p className="text-danger text-sm">{erro}</p>
+  if (erro && !dados) return <p className="text-danger text-sm">{erro}</p>
   if (!dados) return null
 
   const cards = [
@@ -32,8 +36,19 @@ export default function RelatoriosPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-foreground mb-1">Relatórios</h1>
-      <p className="text-muted text-sm mb-6">Um resumo rápido do seu movimento.</p>
+      <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Relatórios</h1>
+          <p className="text-muted text-sm">Um resumo rápido do seu movimento.</p>
+        </div>
+        <button
+          onClick={() => token && relatoriosApi.baixarFinanceiroCsv(token).catch(() => setErro('Falha ao exportar CSV'))}
+          className="inline-flex items-center gap-1.5 text-sm border border-border rounded-lg px-3 py-2 text-muted hover:text-foreground hover:border-border transition">
+          <Download size={15} /> Exportar CSV (30 dias)
+        </button>
+      </div>
+
+      {erro && <p className="text-danger text-sm mb-4">{erro}</p>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         {cards.map(c => {
@@ -46,6 +61,41 @@ export default function RelatoriosPage() {
             </div>
           )
         })}
+      </div>
+
+      <div className="bg-card border border-border rounded-xl shadow-card p-5 mb-6">
+        <div className="flex items-center gap-2 text-sm font-medium text-foreground mb-1">
+          <Wallet size={17} className="text-primary" /> Receita estimada (30 dias)
+        </div>
+        <div className="text-4xl font-bold text-primary">{brl(dados.receita30Dias)}</div>
+        <p className="text-xs text-muted mt-1">Baseada no preço atual de cada serviço × atendimentos realizados. Serviço sem preço conta R$ 0.</p>
+
+        {(dados.receitaPorServico.length > 0 || dados.receitaPorProfissional.length > 0) && (
+          <div className="grid md:grid-cols-2 gap-6 mt-5">
+            <div>
+              <div className="text-sm font-medium text-foreground mb-2">Por serviço</div>
+              <div className="space-y-1.5">
+                {dados.receitaPorServico.map(l => (
+                  <div key={l.nome} className="flex items-center justify-between text-sm">
+                    <span className="text-foreground truncate">{l.nome} <span className="text-muted">× {l.atendimentos}</span></span>
+                    <span className="font-semibold text-foreground shrink-0">{brl(l.receita)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-medium text-foreground mb-2">Por profissional</div>
+              <div className="space-y-1.5">
+                {dados.receitaPorProfissional.map(l => (
+                  <div key={l.nome} className="flex items-center justify-between text-sm">
+                    <span className="text-foreground truncate">{l.nome} <span className="text-muted">× {l.atendimentos}</span></span>
+                    <span className="font-semibold text-foreground shrink-0">{brl(l.receita)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">

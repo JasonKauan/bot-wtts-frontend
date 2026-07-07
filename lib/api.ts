@@ -304,6 +304,20 @@ export const relatoriosApi = {
     request<import('./types').Relatorio>('/api/relatorios', {
       headers: { Authorization: `Bearer ${token}` },
     }),
+  /** Baixa o CSV financeiro dos últimos 30 dias (download direto no navegador). */
+  baixarFinanceiroCsv: async (token: string) => {
+    const res = await fetch(`${API}/api/relatorios/financeiro.csv`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) throw new Error('Falha ao exportar CSV')
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'financeiro.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  },
 }
 
 // ── Bloqueios (folgas/feriados) ───────────────────────────────────────────────

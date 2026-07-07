@@ -31,6 +31,7 @@ export default function ConfiguracoesPage() {
   const [aprovacaoManual, setAprovacaoManual] = useState(false)
   const [antecedencia, setAntecedencia] = useState(0)
   const [resumoDiario, setResumoDiario] = useState(true)
+  const [faltasAprovacao, setFaltasAprovacao] = useState(0)
   const [saving, setSaving] = useState(false)
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState('')
@@ -50,6 +51,7 @@ export default function ConfiguracoesPage() {
       setAprovacaoManual(c.aprovacaoManual)
       setAntecedencia(c.antecedenciaMinHoras)
       setResumoDiario(c.resumoDiario)
+      setFaltasAprovacao(c.faltasParaAprovacao)
     })
   }, [token])
 
@@ -72,6 +74,7 @@ export default function ConfiguracoesPage() {
         aprovacaoManual,
         antecedenciaMinHoras: antecedencia,
         resumoDiario,
+        faltasParaAprovacao: faltasAprovacao,
       })
       setConfig(updated)
       setSucesso(true)
@@ -182,6 +185,15 @@ export default function ConfiguracoesPage() {
             <label className="block text-sm font-medium text-foreground mb-1.5">Antecedência mínima pra cancelar/remarcar (horas)</label>
             <input type="number" min={0} max={72} value={antecedencia} onChange={e => setAntecedencia(Number(e.target.value))} className={`w-24 ${inputCls}`} />
             <p className="text-xs text-muted mt-1">0 = sem regra. Ex.: 2 = o cliente só consegue cancelar/remarcar pelo bot até 2 horas antes do horário.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Escudo anti-faltão (nº de faltas)</label>
+            <input type="number" min={0} max={10} value={faltasAprovacao} onChange={e => setFaltasAprovacao(Number(e.target.value))} className={`w-24 ${inputCls}`} />
+            <p className="text-xs text-muted mt-1">
+              0 = desligado. Ex.: 2 = quem faltou 2 vezes ou mais nos últimos 90 dias não confirma sozinho —
+              o pedido cai na aba <b>Solicitações</b> e você decide se aceita.
+            </p>
           </div>
 
           {erro && <p className="text-danger text-sm">{erro}</p>}
