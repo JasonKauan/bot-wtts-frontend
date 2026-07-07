@@ -30,6 +30,7 @@ export default function ConfiguracoesPage() {
   const [dias, setDias] = useState<number[]>([1, 2, 3, 4, 5, 6, 7])
   const [aprovacaoManual, setAprovacaoManual] = useState(false)
   const [antecedencia, setAntecedencia] = useState(0)
+  const [resumoDiario, setResumoDiario] = useState(true)
   const [saving, setSaving] = useState(false)
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState('')
@@ -48,6 +49,7 @@ export default function ConfiguracoesPage() {
       setDias(parseDias(c.diasFuncionamento))
       setAprovacaoManual(c.aprovacaoManual)
       setAntecedencia(c.antecedenciaMinHoras)
+      setResumoDiario(c.resumoDiario)
     })
   }, [token])
 
@@ -69,6 +71,7 @@ export default function ConfiguracoesPage() {
         diasFuncionamento: dias.join(','),
         aprovacaoManual,
         antecedenciaMinHoras: antecedencia,
+        resumoDiario,
       })
       setConfig(updated)
       setSucesso(true)
@@ -157,6 +160,19 @@ export default function ConfiguracoesPage() {
                 <span className="block text-xs text-muted mt-0.5">
                   Ligado: cada pedido do cliente entra na aba <b>Solicitações</b> e você Aceita ou Recusa (o cliente é avisado no WhatsApp).<br />
                   Desligado: o bot confirma na hora, sozinho.
+                </span>
+              </span>
+            </label>
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" checked={resumoDiario} onChange={e => setResumoDiario(e.target.checked)} className="accent-primary mt-1 h-4 w-4" />
+              <span>
+                <span className="block text-sm font-medium text-foreground">Resumo do dia no WhatsApp</span>
+                <span className="block text-xs text-muted mt-0.5">
+                  Toda manhã você recebe a agenda de hoje no seu WhatsApp: quem vem, que horas e qual serviço.
+                  Se não tiver nada marcado, não enviamos nada.
                 </span>
               </span>
             </label>

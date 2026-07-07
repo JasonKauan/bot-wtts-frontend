@@ -312,7 +312,7 @@ export const bloqueiosApi = {
     request<import('./types').Bloqueio[]>('/api/bloqueios', {
       headers: { Authorization: `Bearer ${token}` },
     }),
-  create: (token: string, body: { dataInicio: string; dataFim?: string; descricao?: string }) =>
+  create: (token: string, body: { dataInicio: string; dataFim?: string; descricao?: string; profissionalId?: string }) =>
     request<import('./types').Bloqueio>('/api/bloqueios', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },

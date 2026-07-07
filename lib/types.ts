@@ -56,6 +56,7 @@ export interface Configuracao {
   diasFuncionamento: string // ISO "1,2,3,4,5,6,7"
   aprovacaoManual: boolean
   antecedenciaMinHoras: number
+  resumoDiario: boolean
 }
 
 export interface ClienteCrm {
@@ -86,6 +87,8 @@ export interface Bloqueio {
   dataInicio: string // yyyy-mm-dd
   dataFim: string
   descricao: string | null
+  profissionalId: string | null   // nulo = estabelecimento inteiro
+  profissionalNome: string | null
 }
 
 export interface ConfiguracaoPayload {
@@ -98,6 +101,7 @@ export interface ConfiguracaoPayload {
   diasFuncionamento: string
   aprovacaoManual: boolean
   antecedenciaMinHoras: number
+  resumoDiario: boolean
 }
 
 export interface AuthResponse {

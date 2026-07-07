@@ -1,25 +1,34 @@
 'use client'
 import { useEffect, useState, FormEvent } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { bloqueiosApi } from '@/lib/api'
-import type { Bloqueio } from '@/lib/types'
-import { CalendarOff, Plus, Trash2, Loader2 } from 'lucide-react'
+import { bloqueiosApi, profissionaisApi } from '@/lib/api'
+import type { Bloqueio, Profissional } from '@/lib/types'
+import { CalendarOff, Plus, Trash2, Loader2, User } from 'lucide-react'
 
 const inputCls = 'w-full bg-card border border-input rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition'
 
 export default function FolgasPage() {
   const { token } = useAuth()
   const [itens, setItens] = useState<Bloqueio[]>([])
+  const [profs, setProfs] = useState<Profissional[]>([])
   const [loading, setLoading] = useState(true)
   const [inicio, setInicio] = useState('')
   const [fim, setFim] = useState('')
   const [descricao, setDescricao] = useState('')
+  const [profissionalId, setProfissionalId] = useState('') // '' = estabelecimento inteiro
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')
 
   async function fetchData() {
     if (!token) return
-    try { setItens(await bloqueiosApi.list(token)) }
+    try {
+      const [bloqueios, listaProfs] = await Promise.all([
+        bloqueiosApi.list(token),
+        profissionaisApi.list(token),
+      ])
+      setItens(bloqueios)
+      setProfs(listaProfs.filter(p => p.ativo))
+    }
     catch (err: unknown) { setErro(err instanceof Error ? err.message : 'Erro ao carregar') }
     finally { setLoading(false) }
   }
@@ -35,8 +44,9 @@ export default function FolgasPage() {
         dataInicio: inicio,
         dataFim: fim || undefined,
         descricao: descricao.trim() || undefined,
+        profissionalId: profissionalId || undefined,
       })
-      setInicio(''); setFim(''); setDescricao('')
+      setInicio(''); setFim(''); setDescricao(''); setProfissionalId('')
       fetchData()
     } catch (err: unknown) {
       setErro(err instanceof Error ? err.message : 'Erro ao salvar')
@@ -66,6 +76,16 @@ export default function FolgasPage() {
             <input type="date" value={fim} onChange={e => setFim(e.target.value)} className={inputCls} />
           </div>
         </div>
+        {profs.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Quem folga?</label>
+            <select value={profissionalId} onChange={e => setProfissionalId(e.target.value)} className={inputCls}>
+              <option value="">Estabelecimento inteiro</option>
+              {profs.map(p => <option key={p.id} value={p.id}>Só {p.nome}</option>)}
+            </select>
+            <p className="text-xs text-muted mt-1">Folga de um profissional bloqueia só os horários dele — os outros continuam atendendo normalmente.</p>
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium text-foreground mb-1.5">Motivo <span className="text-muted font-normal">(opcional)</span></label>
           <input value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Ex.: Feriado, Férias" className={inputCls} />
@@ -89,7 +109,12 @@ export default function FolgasPage() {
           {itens.map(b => (
             <div key={b.id} className="bg-card border border-border rounded-xl shadow-card p-4 flex items-center justify-between gap-4">
               <div>
-                <div className="font-medium text-foreground">{fmtPeriodo(b.dataInicio, b.dataFim)}</div>
+                <div className="font-medium text-foreground flex items-center gap-2 flex-wrap">
+                  {fmtPeriodo(b.dataInicio, b.dataFim)}
+                  <span className="inline-flex items-center gap-1 text-xs font-normal rounded-full bg-muted-bg text-muted px-2 py-0.5">
+                    <User size={11} /> {b.profissionalNome ?? 'Estabelecimento'}
+                  </span>
+                </div>
                 {b.descricao && <div className="text-xs text-muted mt-0.5">{b.descricao}</div>}
               </div>
               <button onClick={() => remover(b.id)} className="inline-flex items-center gap-1 text-sm text-muted hover:text-danger transition">
