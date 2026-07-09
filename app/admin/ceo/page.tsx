@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { adminApi } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
 import type { CeoResumo, Acerto, AcertoHistorico } from '@/lib/types'
-import { Crown, ArrowLeft, TrendingUp, TrendingDown, Trophy, Wallet, ShoppingCart, RefreshCw, Download, HandCoins, Check, Loader2, History } from 'lucide-react'
+import { Crown, ArrowLeft, TrendingUp, TrendingDown, Trophy, Wallet, ShoppingCart, RefreshCw, Download, HandCoins, Check, Loader2, History, DatabaseBackup } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -85,6 +85,12 @@ export default function CeoPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={async () => { if (token) { try { await adminApi.baixarBackup(token) } catch (e: unknown) { setErro(e instanceof Error ? e.message : 'Erro no backup') } } }}
+              className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition"
+              title="Baixa um arquivo com todos os dados do sistema — guarde em local seguro">
+              <DatabaseBackup size={15} /> Backup completo
+            </button>
             <button onClick={exportar} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
               <Download size={15} /> Exportar CSV
             </button>

@@ -258,6 +258,20 @@ export const adminApi = {
     request<import('./types').AcertoHistorico[]>('/api/admin/ceo/acertos', {
       headers: { Authorization: `Bearer ${token}` },
     }),
+  /** Backup completo do banco em JSON (download direto). */
+  baixarBackup: async (token: string) => {
+    const res = await fetch(`${API}/api/admin/ceo/backup`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) throw new Error('Falha ao gerar o backup')
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `backup-agendabot-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  },
   /** Baixa o CSV de vendas (download direto no navegador). */
   baixarVendasCsv: async (token: string) => {
     const res = await fetch(`${API}/api/admin/ceo/vendas.csv`, {
@@ -320,13 +334,43 @@ export const relatoriosApi = {
   },
 }
 
+// ── Clientes fixos (recorrência) ──────────────────────────────────────────────
+export const recorrenciasApi = {
+  list: (token: string) =>
+    request<import('./types').Recorrencia[]>('/api/recorrencias', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  create: (token: string, body: {
+    clienteNome: string; clienteTelefone?: string; servicoId: string;
+    profissionalId?: string; frequenciaDias: number; hora: string; primeiraData: string
+  }) =>
+    request<import('./types').Recorrencia>('/api/recorrencias', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }),
+  toggleAtivo: (token: string, id: string) =>
+    request<import('./types').Recorrencia>(`/api/recorrencias/${id}/ativo`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  remove: (token: string, id: string) =>
+    request<void>(`/api/recorrencias/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+}
+
 // ── Bloqueios (folgas/feriados) ───────────────────────────────────────────────
 export const bloqueiosApi = {
   list: (token: string) =>
     request<import('./types').Bloqueio[]>('/api/bloqueios', {
       headers: { Authorization: `Bearer ${token}` },
     }),
-  create: (token: string, body: { dataInicio: string; dataFim?: string; descricao?: string; profissionalId?: string }) =>
+  create: (token: string, body: {
+    dataInicio: string; dataFim?: string; descricao?: string; profissionalId?: string;
+    horaInicio?: string; horaFim?: string
+  }) =>
     request<import('./types').Bloqueio>('/api/bloqueios', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },

@@ -16,6 +16,9 @@ export default function FolgasPage() {
   const [fim, setFim] = useState('')
   const [descricao, setDescricao] = useState('')
   const [profissionalId, setProfissionalId] = useState('') // '' = estabelecimento inteiro
+  const [parteDoDia, setParteDoDia] = useState(false)       // compromisso avulso (V24)
+  const [horaInicio, setHoraInicio] = useState('14:00')
+  const [horaFim, setHoraFim] = useState('15:00')
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -45,8 +48,10 @@ export default function FolgasPage() {
         dataFim: fim || undefined,
         descricao: descricao.trim() || undefined,
         profissionalId: profissionalId || undefined,
+        horaInicio: parteDoDia ? horaInicio : undefined,
+        horaFim: parteDoDia ? horaFim : undefined,
       })
-      setInicio(''); setFim(''); setDescricao(''); setProfissionalId('')
+      setInicio(''); setFim(''); setDescricao(''); setProfissionalId(''); setParteDoDia(false)
       fetchData()
     } catch (err: unknown) {
       setErro(err instanceof Error ? err.message : 'Erro ao salvar')
@@ -87,6 +92,25 @@ export default function FolgasPage() {
           </div>
         )}
         <div>
+          <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-2 cursor-pointer">
+            <input type="checkbox" checked={parteDoDia} onChange={e => setParteDoDia(e.target.checked)} className="accent-primary" />
+            Só uma parte do dia (compromisso avulso)
+          </label>
+          {parteDoDia && (
+            <div className="grid grid-cols-2 gap-4 pl-6">
+              <div>
+                <label className="block text-xs text-muted mb-1">Das</label>
+                <input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className="block text-xs text-muted mb-1">Até</label>
+                <input type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} className={inputCls} />
+              </div>
+            </div>
+          )}
+          {parteDoDia && <p className="text-xs text-muted mt-1 pl-6">Ex.: dentista das 14h às 15h — o resto do dia continua aberto pra agendamentos.</p>}
+        </div>
+        <div>
           <label className="block text-sm font-medium text-foreground mb-1.5">Motivo <span className="text-muted font-normal">(opcional)</span></label>
           <input value={descricao} onChange={e => setDescricao(e.target.value)} placeholder="Ex.: Feriado, Férias" className={inputCls} />
         </div>
@@ -111,6 +135,9 @@ export default function FolgasPage() {
               <div>
                 <div className="font-medium text-foreground flex items-center gap-2 flex-wrap">
                   {fmtPeriodo(b.dataInicio, b.dataFim)}
+                  {b.horaInicio && b.horaFim && (
+                    <span className="text-sm font-normal text-muted">das {b.horaInicio} às {b.horaFim}</span>
+                  )}
                   <span className="inline-flex items-center gap-1 text-xs font-normal rounded-full bg-muted-bg text-muted px-2 py-0.5">
                     <User size={11} /> {b.profissionalNome ?? 'Estabelecimento'}
                   </span>

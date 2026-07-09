@@ -32,6 +32,7 @@ export default function ConfiguracoesPage() {
   const [antecedencia, setAntecedencia] = useState(0)
   const [resumoDiario, setResumoDiario] = useState(true)
   const [faltasAprovacao, setFaltasAprovacao] = useState(0)
+  const [permiteCombo, setPermiteCombo] = useState(true)
   const [saving, setSaving] = useState(false)
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState('')
@@ -52,6 +53,7 @@ export default function ConfiguracoesPage() {
       setAntecedencia(c.antecedenciaMinHoras)
       setResumoDiario(c.resumoDiario)
       setFaltasAprovacao(c.faltasParaAprovacao)
+      setPermiteCombo(c.permiteCombo)
     })
   }, [token])
 
@@ -75,6 +77,7 @@ export default function ConfiguracoesPage() {
         antecedenciaMinHoras: antecedencia,
         resumoDiario,
         faltasParaAprovacao: faltasAprovacao,
+        permiteCombo,
       })
       setConfig(updated)
       setSucesso(true)
@@ -169,6 +172,19 @@ export default function ConfiguracoesPage() {
           </div>
 
           <div className="border-t border-border pt-4">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" checked={permiteCombo} onChange={e => setPermiteCombo(e.target.checked)} className="accent-primary mt-1 h-4 w-4" />
+              <span>
+                <span className="block text-sm font-medium text-foreground">Permitir combos no bot</span>
+                <span className="block text-xs text-muted mt-0.5">
+                  O cliente pode pedir dois ou mais serviços de uma vez ("corte e barba") e o bot agenda
+                  um horário só, com a duração somada.
+                </span>
+              </span>
+            </label>
+          </div>
+
+          <div>
             <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" checked={resumoDiario} onChange={e => setResumoDiario(e.target.checked)} className="accent-primary mt-1 h-4 w-4" />
               <span>

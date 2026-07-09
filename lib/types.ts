@@ -58,6 +58,7 @@ export interface Configuracao {
   antecedenciaMinHoras: number
   resumoDiario: boolean
   faltasParaAprovacao: number // 0 = escudo anti-faltão desligado
+  permiteCombo: boolean
 }
 
 export interface ClienteCrm {
@@ -99,6 +100,20 @@ export interface Bloqueio {
   descricao: string | null
   profissionalId: string | null   // nulo = estabelecimento inteiro
   profissionalNome: string | null
+  horaInicio: string | null       // nulos = dia inteiro; "14:00" = compromisso avulso
+  horaFim: string | null
+}
+
+export interface Recorrencia {
+  id: string
+  clienteNome: string
+  clienteTelefone: string | null
+  servico: string
+  profissional: string | null
+  frequenciaDias: number // 7 semanal, 14 quinzenal, 28 mensal
+  hora: string
+  proximaData: string // yyyy-mm-dd
+  ativo: boolean
 }
 
 export interface ConfiguracaoPayload {
@@ -113,6 +128,7 @@ export interface ConfiguracaoPayload {
   antecedenciaMinHoras: number
   resumoDiario: boolean
   faltasParaAprovacao: number
+  permiteCombo: boolean
 }
 
 export interface AuthResponse {
