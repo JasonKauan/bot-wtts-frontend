@@ -120,6 +120,11 @@ export const profissionaisApi = {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` },
     }),
+  remove: (token: string, id: string) =>
+    request<void>(`/api/profissionais/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
 }
 
 // ── Serviços ──────────────────────────────────────────────────────────────────

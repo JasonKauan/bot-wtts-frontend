@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { profissionaisApi } from '@/lib/api'
 import type { Profissional } from '@/lib/types'
-import { Plus, Pencil, Power, Check, X, Clock, Loader2 } from 'lucide-react'
+import { Plus, Pencil, Power, Check, X, Clock, Loader2, Trash2 } from 'lucide-react'
 
 const inputCls = 'bg-card border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition'
 
@@ -57,6 +57,7 @@ export default function ProfissionaisPage() {
   const [editando, setEditando] = useState<{ id: string; nome: string } | null>(null)
   const [gradeDe, setGradeDe] = useState<string | null>(null) // id do prof com editor de horários aberto
   const [grade, setGrade] = useState<GradeForm | null>(null)
+  const [excluindo, setExcluindo] = useState<string | null>(null) // id aguardando confirmação de exclusão
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -129,6 +130,19 @@ export default function ProfissionaisPage() {
     setGrade(g => g ? { ...g, dias: g.dias.includes(iso) ? g.dias.filter(x => x !== iso) : [...g.dias, iso].sort((a, b) => a - b) } : g)
   }
 
+  async function excluir(id: string) {
+    if (!token) return
+    setSaving(true); setErro('')
+    try {
+      await profissionaisApi.remove(token, id)
+      setExcluindo(null)
+      fetchData()
+    } catch (err: unknown) {
+      setExcluindo(null)
+      setErro(err instanceof Error ? err.message : 'Erro ao excluir')
+    } finally { setSaving(false) }
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-foreground mb-6">Profissionais</h1>
@@ -166,9 +180,23 @@ export default function ProfissionaisPage() {
                         {p.horarioAbertura != null ? resumoGrade(p) : 'Segue o horário do estabelecimento'}
                       </p>
                     </div>
-                    <button onClick={() => (gradeDe === p.id ? setGradeDe(null) : abrirGrade(p))} className={`inline-flex items-center gap-1 text-sm transition ${gradeDe === p.id ? 'text-primary' : 'text-muted hover:text-foreground'}`}><Clock size={15} /> Horários</button>
-                    <button onClick={() => { setGradeDe(null); setEditando({ id: p.id, nome: p.nome }) }} className="inline-flex items-center gap-1 text-sm text-muted hover:text-foreground transition"><Pencil size={15} /> Editar</button>
-                    <button onClick={async () => { if (token) { await profissionaisApi.toggleAtivo(token, p.id); fetchData() } }} className={`inline-flex items-center gap-1 text-sm transition ${p.ativo ? 'text-muted hover:text-danger' : 'text-primary hover:text-primary-hover'}`}><Power size={15} /> {p.ativo ? 'Desativar' : 'Ativar'}</button>
+                    {excluindo === p.id ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted">Excluir <b className="text-foreground">{p.nome}</b>?</span>
+                        <button onClick={() => excluir(p.id)} disabled={saving}
+                          className="inline-flex items-center gap-1 text-sm bg-danger text-white font-semibold rounded-lg px-3 py-1.5 transition disabled:opacity-50">
+                          {saving ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} Sim, excluir
+                        </button>
+                        <button onClick={() => setExcluindo(null)} className="text-sm text-muted hover:text-foreground transition">Não</button>
+                      </div>
+                    ) : (
+                      <>
+                        <button onClick={() => (gradeDe === p.id ? setGradeDe(null) : abrirGrade(p))} className={`inline-flex items-center gap-1 text-sm transition ${gradeDe === p.id ? 'text-primary' : 'text-muted hover:text-foreground'}`}><Clock size={15} /> Horários</button>
+                        <button onClick={() => { setGradeDe(null); setEditando({ id: p.id, nome: p.nome }) }} className="inline-flex items-center gap-1 text-sm text-muted hover:text-foreground transition"><Pencil size={15} /> Editar</button>
+                        <button onClick={async () => { if (token) { await profissionaisApi.toggleAtivo(token, p.id); fetchData() } }} className={`inline-flex items-center gap-1 text-sm transition ${p.ativo ? 'text-muted hover:text-danger' : 'text-primary hover:text-primary-hover'}`}><Power size={15} /> {p.ativo ? 'Desativar' : 'Ativar'}</button>
+                        <button onClick={() => { setGradeDe(null); setErro(''); setExcluindo(p.id) }} className="inline-flex items-center gap-1 text-sm text-muted hover:text-danger transition"><Trash2 size={15} /> Excluir</button>
+                      </>
+                    )}
                   </>
                 )}
               </div>
