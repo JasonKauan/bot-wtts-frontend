@@ -177,7 +177,7 @@ export default function ConfiguracoesPage() {
               <span>
                 <span className="block text-sm font-medium text-foreground">Permitir combos no bot</span>
                 <span className="block text-xs text-muted mt-0.5">
-                  O cliente pode pedir dois ou mais serviços de uma vez ("corte e barba") e o bot agenda
+                  O cliente pode pedir dois ou mais serviços de uma vez (&quot;corte e barba&quot;) e o bot agenda
                   um horário só, com a duração somada.
                 </span>
               </span>
