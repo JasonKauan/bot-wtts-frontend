@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { relatoriosApi } from '@/lib/api'
 import type { Relatorio } from '@/lib/types'
-import { CalendarClock, CheckCircle2, UserX, XCircle, TrendingUp, Wallet, Download } from 'lucide-react'
+import Link from 'next/link'
+import { CalendarClock, CheckCircle2, UserX, XCircle, TrendingUp, Wallet, Download, Gem } from 'lucide-react'
 
 function brl(n: number): string {
   return Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -63,6 +64,22 @@ export default function RelatoriosPage() {
         })}
       </div>
 
+      {!dados.financeiroLiberado && (
+        <div className="bg-card border border-border rounded-xl shadow-card p-5 mb-6 flex items-center gap-4">
+          <span className="grid place-items-center h-11 w-11 rounded-full bg-cyan-100 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400 shrink-0">
+            <Gem size={20} />
+          </span>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-foreground">Relatório financeiro é do plano Diamond</p>
+            <p className="text-xs text-muted mt-0.5">Receita por serviço e por profissional, com planilha pra baixar.</p>
+          </div>
+          <Link href="/assinatura" className="text-sm bg-primary hover:bg-primary-hover text-primary-foreground font-semibold px-4 py-2 rounded-lg transition shrink-0">
+            Fazer upgrade
+          </Link>
+        </div>
+      )}
+
+      {dados.financeiroLiberado && (
       <div className="bg-card border border-border rounded-xl shadow-card p-5 mb-6">
         <div className="flex items-center gap-2 text-sm font-medium text-foreground mb-1">
           <Wallet size={17} className="text-primary" /> Receita estimada (30 dias)
@@ -97,6 +114,7 @@ export default function RelatoriosPage() {
           </div>
         )}
       </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-card border border-border rounded-xl shadow-card p-5">

@@ -3,13 +3,53 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { assinaturaApi } from '@/lib/api'
 import type { AssinaturaStatus, PixGerado } from '@/lib/types'
-import { Check, Copy, AlertTriangle, Clock, Loader2 } from 'lucide-react'
+import { Check, Copy, AlertTriangle, Clock, Loader2, Medal, Shield, Gem } from 'lucide-react'
 
 const PLANOS = [
-  { id: 'BASICO', nome: 'Básico', preco: 79,  detalhes: ['1 profissional', '100 agendamentos/mês'] },
-  { id: 'PRO',    nome: 'Pro',    preco: 129, detalhes: ['5 profissionais', 'Agendamentos ilimitados'] },
-  { id: 'PLUS',   nome: 'Plus',   preco: 199, detalhes: ['Profissionais ilimitados', 'Tudo ilimitado'] },
+  {
+    id: 'GOLD', nome: 'Gold', preco: '39,90', destaque: false,
+    slogan: 'O essencial pra lotar a agenda',
+    detalhes: ['Bot completo de agendamento', 'Lembretes automáticos (24h + no dia)',
+      'Agendamentos ilimitados', '2 profissionais', 'Agenda, serviços e folgas'],
+  },
+  {
+    id: 'PLATINUM', nome: 'Platinum', preco: '79,90', destaque: true,
+    slogan: 'Pra quem tem equipe',
+    detalhes: ['Tudo do Gold', 'Até 5 profissionais + grade individual', 'Combos ("corte e barba")',
+      'Lista de espera', 'Escudo anti-faltão + fila de aprovação', 'Resumo diário no WhatsApp', 'CRM de clientes'],
+  },
+  {
+    id: 'DIAMOND', nome: 'Diamond', preco: '119,90', destaque: false,
+    slogan: 'Pra gerenciar o negócio',
+    detalhes: ['Tudo do Platinum', 'Profissionais ilimitados', 'Clientes fixos (recorrência)',
+      'Relatório financeiro + planilha', 'Conversas do bot (auditoria)'],
+  },
 ] as const
+
+/** Brasão do plano — dourado, prateado e diamante. */
+function Brasao({ plano, size = 34 }: { plano: string; size?: number }) {
+  const icone = size > 24 ? size - 16 : size - 8
+  if (plano === 'GOLD') return (
+    <span style={{ height: size, width: size }} className="grid place-items-center rounded-full bg-amber-100 text-amber-600 ring-2 ring-amber-300 dark:bg-amber-500/15 dark:text-amber-400 dark:ring-amber-500/40 shrink-0">
+      <Medal size={icone} />
+    </span>
+  )
+  if (plano === 'PLATINUM') return (
+    <span style={{ height: size, width: size }} className="grid place-items-center rounded-full bg-slate-100 text-slate-500 ring-2 ring-slate-300 dark:bg-slate-400/15 dark:text-slate-300 dark:ring-slate-400/40 shrink-0">
+      <Shield size={icone} />
+    </span>
+  )
+  if (plano === 'DIAMOND') return (
+    <span style={{ height: size, width: size }} className="grid place-items-center rounded-full bg-cyan-100 text-cyan-600 ring-2 ring-cyan-300 dark:bg-cyan-500/15 dark:text-cyan-400 dark:ring-cyan-500/40 shrink-0">
+      <Gem size={icone} />
+    </span>
+  )
+  return null
+}
+
+const NOME_BONITO: Record<string, string> = {
+  TRIAL: 'Teste grátis', GOLD: 'Gold', PLATINUM: 'Platinum', DIAMOND: 'Diamond',
+}
 
 export default function AssinaturaPage() {
   const { token } = useAuth()
@@ -79,10 +119,11 @@ export default function AssinaturaPage() {
       )}
 
       <div className="bg-card border border-border rounded-xl shadow-card p-6 mb-8 max-w-md">
-        <p className="text-sm text-muted mb-1">Plano atual</p>
-        <div className="flex items-baseline gap-3">
-          <span className="text-xl font-bold text-primary">{status.plano}</span>
-          {status.plano !== 'TRIAL' && <span className="text-muted text-sm">R$ {status.valorMensal.toFixed(2)}/mês</span>}
+        <p className="text-sm text-muted mb-2">Plano atual</p>
+        <div className="flex items-center gap-3">
+          <Brasao plano={status.plano} />
+          <span className="text-xl font-bold text-foreground">{NOME_BONITO[status.plano] ?? status.plano}</span>
+          {status.plano !== 'TRIAL' && <span className="text-muted text-sm">R$ {status.valorMensal.toFixed(2).replace('.', ',')}/mês</span>}
         </div>
         <p className="text-sm text-muted mt-2">
           {status.vencida ? 'Venceu em' : 'Válido até'} <strong className="text-foreground">{expiraFmt}</strong>
@@ -91,18 +132,25 @@ export default function AssinaturaPage() {
       </div>
 
       <h2 className="text-lg font-semibold text-foreground mb-4">Planos</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mb-8">
         {PLANOS.map(p => {
           const atual = status.plano === p.id
           return (
-            <div key={p.id} className={`bg-card rounded-xl border p-6 flex flex-col shadow-card ${atual ? 'border-primary ring-1 ring-primary' : 'border-border'}`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-bold text-foreground">{p.nome}</span>
-                {atual && <span className="text-xs bg-primary-subtle text-primary px-2 py-0.5 rounded-full font-medium">atual</span>}
+            <div key={p.id} className={`bg-card rounded-xl border p-6 flex flex-col shadow-card relative ${atual || p.destaque ? 'border-primary ring-1 ring-primary' : 'border-border'}`}>
+              {p.destaque && !atual && (
+                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs bg-primary text-primary-foreground px-2.5 py-0.5 rounded-full font-semibold">mais escolhido</span>
+              )}
+              <div className="flex items-center gap-3 mb-1">
+                <Brasao plano={p.id} />
+                <div className="flex-1">
+                  <span className="font-bold text-foreground">{p.nome}</span>
+                  <p className="text-xs text-muted">{p.slogan}</p>
+                </div>
+                {atual && <span className="text-xs bg-primary-subtle text-primary px-2 py-0.5 rounded-full font-medium shrink-0">atual</span>}
               </div>
-              <p className="text-2xl font-bold text-foreground mb-4">R$ {p.preco}<span className="text-sm font-normal text-muted">/mês</span></p>
+              <p className="text-2xl font-bold text-foreground my-3">R$ {p.preco}<span className="text-sm font-normal text-muted">/mês</span></p>
               <ul className="text-sm text-muted space-y-1.5 mb-6 flex-1">
-                {p.detalhes.map(d => <li key={d} className="flex items-center gap-2"><Check size={15} className="text-primary shrink-0" /> {d}</li>)}
+                {p.detalhes.map(d => <li key={d} className="flex items-start gap-2"><Check size={15} className="text-primary shrink-0 mt-0.5" /> {d}</li>)}
               </ul>
               <button onClick={() => pagar(p.id)} disabled={gerando !== null} className="w-full inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold py-2.5 rounded-lg transition disabled:opacity-50">
                 {gerando === p.id && <Loader2 size={16} className="animate-spin" />}

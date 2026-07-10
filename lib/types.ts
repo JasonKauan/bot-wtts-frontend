@@ -114,6 +114,7 @@ export interface Relatorio {
   receita30Dias: number
   receitaPorServico: FaturamentoLinha[]
   receitaPorProfissional: FaturamentoLinha[]
+  financeiroLiberado: boolean // false = plano sem o recurso (mostrar upgrade)
 }
 
 export interface Bloqueio {
@@ -162,7 +163,7 @@ export interface AuthResponse {
 }
 
 // ── Admin / back-office ──────────────────────────────────────────────────────
-export type PlanoNome = 'TRIAL' | 'BASICO' | 'PRO' | 'PLUS'
+export type PlanoNome = 'TRIAL' | 'GOLD' | 'PLATINUM' | 'DIAMOND'
 
 export interface ClienteResumo {
   id: string
@@ -276,7 +277,7 @@ export interface AuditoriaItem {
 
 // ── Assinatura (Iteração 6) ──────────────────────────────────────────────────
 export interface AssinaturaStatus {
-  plano: 'TRIAL' | 'BASICO' | 'PRO' | 'PLUS'
+  plano: 'TRIAL' | 'GOLD' | 'PLATINUM' | 'DIAMOND'
   valorMensal: number
   expiraEm: string | null
   diasRestantes: number

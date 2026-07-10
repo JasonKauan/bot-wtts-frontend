@@ -370,8 +370,14 @@ function IconBtn({ children, title, onClick, danger }: {
 }
 
 function PlanoBadge({ plano }: { plano: PlanoNome }) {
-  const cor = plano === 'TRIAL' ? 'bg-muted-bg text-muted' : 'bg-primary-subtle text-primary'
-  return <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${cor}`}>{plano}</span>
+  const estilo: Record<string, { cor: string; nome: string }> = {
+    TRIAL:    { cor: 'bg-muted-bg text-muted', nome: 'Trial' },
+    GOLD:     { cor: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400', nome: '🥇 Gold' },
+    PLATINUM: { cor: 'bg-slate-100 text-slate-600 dark:bg-slate-400/15 dark:text-slate-300', nome: '🛡️ Platinum' },
+    DIAMOND:  { cor: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400', nome: '💎 Diamond' },
+  }
+  const e = estilo[plano] ?? { cor: 'bg-muted-bg text-muted', nome: plano }
+  return <span className={`text-xs font-medium rounded-full px-2 py-0.5 whitespace-nowrap ${e.cor}`}>{e.nome}</span>
 }
 
 function StatusBadge({ c }: { c: ClienteResumo }) {
@@ -470,7 +476,7 @@ function CriarClienteModal({ token, onClose, onDone }: {
 function PlanoModal({ token, cliente, onClose, onDone }: {
   token: string | null; cliente: ClienteResumo; onClose: () => void; onDone: () => void
 }) {
-  const [plano, setPlano] = useState<PlanoNome>(cliente.plano === 'TRIAL' ? 'BASICO' : cliente.plano)
+  const [plano, setPlano] = useState<PlanoNome>(cliente.plano === 'TRIAL' ? 'GOLD' : cliente.plano)
   const [modo, setModo] = useState<'meses' | 'dias' | 'data'>('meses')
   const [meses, setMeses] = useState(1)
   const [dias, setDias] = useState(30)
@@ -494,7 +500,7 @@ function PlanoModal({ token, cliente, onClose, onDone }: {
     }
   }
 
-  const planos: PlanoNome[] = ['TRIAL', 'BASICO', 'PRO', 'PLUS']
+  const planos: PlanoNome[] = ['TRIAL', 'GOLD', 'PLATINUM', 'DIAMOND']
   const modos: Array<{ k: 'meses' | 'dias' | 'data'; t: string }> = [
     { k: 'meses', t: 'Meses' }, { k: 'data', t: 'Data' }, { k: 'dias', t: 'Dias' },
   ]
