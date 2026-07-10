@@ -8,6 +8,7 @@ import ThemeToggle from '@/components/ThemeToggle'
 import {
   LayoutDashboard, CalendarDays, Users, Scissors, CreditCard,
   Settings, MessageSquare, LogOut, CalendarCheck, Inbox, CalendarOff, BarChart3, Contact, Repeat,
+  MessagesSquare, Bot,
 } from 'lucide-react'
 
 const links = [
@@ -16,9 +17,11 @@ const links = [
   { href: '/solicitacoes',  label: 'Solicitações',      icon: Inbox },
   { href: '/clientes',      label: 'Clientes',          icon: Contact },
   { href: '/fixos',         label: 'Clientes fixos',    icon: Repeat },
+  { href: '/conversas',     label: 'Conversas do bot',  icon: MessagesSquare },
   { href: '/relatorios',    label: 'Relatórios',        icon: BarChart3 },
   { href: '/folgas',        label: 'Folgas',            icon: CalendarOff },
   { href: '/conectar',      label: 'Conectar WhatsApp', icon: MessageSquare },
+  { href: '/testar',        label: 'Testar o bot',      icon: Bot },
   { href: '/profissionais', label: 'Profissionais',     icon: Users },
   { href: '/servicos',      label: 'Serviços',          icon: Scissors },
   { href: '/assinatura',    label: 'Assinatura',        icon: CreditCard },

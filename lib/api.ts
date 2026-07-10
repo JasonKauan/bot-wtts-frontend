@@ -334,6 +334,32 @@ export const relatoriosApi = {
   },
 }
 
+// ── Test-drive do bot / conversas ─────────────────────────────────────────────
+export const botApi = {
+  simular: (token: string, mensagem: string) =>
+    request<import('./types').RespostaSimulada[]>('/api/bot/simular', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ mensagem }),
+    }),
+  resetarSimulacao: (token: string) =>
+    request<void>('/api/bot/simular', {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+}
+
+export const conversasApi = {
+  list: (token: string) =>
+    request<import('./types').ConversaResumo[]>('/api/conversas', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  mensagens: (token: string, telefone: string) =>
+    request<import('./types').MensagemBot[]>(`/api/conversas/${encodeURIComponent(telefone)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+}
+
 // ── Clientes fixos (recorrência) ──────────────────────────────────────────────
 export const recorrenciasApi = {
   list: (token: string) =>

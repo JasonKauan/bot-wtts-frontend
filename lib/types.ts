@@ -11,6 +11,29 @@ export interface Agendamento {
 export interface DashboardData {
   agendamentos: Agendamento[]
   pendentes: number
+  botAgendamentos30d: number
+  botReceita30d: number
+}
+
+// ── Test-drive do bot / conversas ────────────────────────────────────────────
+export interface RespostaSimulada {
+  texto: string
+  paraDono: boolean
+}
+
+export interface ConversaResumo {
+  telefone: string
+  clienteNome: string | null
+  ultimaMensagem: string
+  deCliente: boolean
+  em: string
+  mensagens: number
+}
+
+export interface MensagemBot {
+  deCliente: boolean
+  texto: string
+  em: string
 }
 
 export interface Profissional {
