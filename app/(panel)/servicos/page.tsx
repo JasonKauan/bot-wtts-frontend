@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { servicosApi } from '@/lib/api'
 import type { Servico } from '@/lib/types'
-import { Plus, Pencil, Power, Check, X } from 'lucide-react'
+import { Plus, Pencil, Power, Check, X, Trash2, Loader2 } from 'lucide-react'
 
 /** "40" ou "40,50" → número; vazio/inválido → null (sem preço). */
 function parsePreco(txt: string): number | null {
@@ -19,6 +19,7 @@ export default function ServicosPage() {
   const [novoDuracao, setNovoDuracao] = useState(30)
   const [novoPreco, setNovoPreco] = useState('')
   const [editando, setEditando] = useState<{ id: string; nome: string; duracao: number; preco: string } | null>(null)
+  const [excluindo, setExcluindo] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -59,6 +60,19 @@ export default function ServicosPage() {
     if (!token) return
     await servicosApi.toggleAtivo(token, id)
     fetchData()
+  }
+
+  async function excluir(id: string) {
+    if (!token) return
+    setSaving(true); setErro('')
+    try {
+      await servicosApi.remove(token, id)
+      setExcluindo(null)
+      fetchData()
+    } catch (err: unknown) {
+      setExcluindo(null)
+      setErro(err instanceof Error ? err.message : 'Erro ao excluir')
+    } finally { setSaving(false) }
   }
 
   const inputCls = 'bg-card border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition'
@@ -103,6 +117,15 @@ export default function ServicosPage() {
                   <button type="button" onClick={() => setEditando(null)} className="inline-flex items-center gap-1 text-muted text-sm hover:text-foreground"><X size={15} /> Cancelar</button>
                 </form>
               ) : (
+                excluindo === s.id ? (
+                  <div className="flex items-center gap-2 flex-1 justify-end">
+                    <span className="text-sm text-muted">Excluir <b className="text-foreground">{s.nome}</b>?</span>
+                    <button onClick={() => excluir(s.id)} disabled={saving} className="inline-flex items-center gap-1 text-sm bg-danger text-white font-semibold rounded-lg px-3 py-1.5 transition disabled:opacity-50">
+                      {saving ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} Sim, excluir
+                    </button>
+                    <button onClick={() => setExcluindo(null)} className="text-sm text-muted hover:text-foreground transition">Não</button>
+                  </div>
+                ) : (
                 <>
                   <div className="flex-1">
                     <span className="font-medium text-foreground">{s.nome}</span>
@@ -112,7 +135,9 @@ export default function ServicosPage() {
                   </div>
                   <button onClick={() => setEditando({ id: s.id, nome: s.nome, duracao: s.duracaoMinutos, preco: s.preco != null ? String(s.preco) : '' })} className="inline-flex items-center gap-1 text-sm text-muted hover:text-foreground transition"><Pencil size={15} /> Editar</button>
                   <button onClick={() => toggleAtivo(s.id)} className={`inline-flex items-center gap-1 text-sm transition ${s.ativo ? 'text-muted hover:text-danger' : 'text-primary hover:text-primary-hover'}`}><Power size={15} /> {s.ativo ? 'Desativar' : 'Ativar'}</button>
+                  <button onClick={() => { setErro(''); setExcluindo(s.id) }} className="inline-flex items-center gap-1 text-sm text-muted hover:text-danger transition"><Trash2 size={15} /> Excluir</button>
                 </>
+                )
               )}
             </div>
           ))}

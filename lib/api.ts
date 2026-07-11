@@ -150,6 +150,11 @@ export const servicosApi = {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}` },
     }),
+  remove: (token: string, id: string) =>
+    request<void>(`/api/servicos/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
 }
 
 // ── Assinatura (Iteração 6) ───────────────────────────────────────────────────
