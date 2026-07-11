@@ -49,15 +49,20 @@ export default function Sidebar() {
     return () => { vivo = false; clearInterval(t) }
   }, [token])
 
-  /** Multi-unidade: troca o token pro tenant escolhido e recarrega o painel inteiro. */
+  /**
+   * Multi-unidade: troca o token pro tenant escolhido SEM recarregar a página.
+   * (Reload duro chegava no /dashboard antes de o token novo sair do localStorage
+   * e o guard jogava pro /login.) Navegação client-side: o token novo já está no
+   * contexto e todas as telas re-buscam os dados da unidade nova via useEffect[token].
+   */
   async function trocarUnidade(tenantId: string) {
     if (!token || trocando) return
     setTrocando(true)
     try {
       const r = await unidadesApi.trocar(token, tenantId)
       login(r.token)
-      window.location.href = '/dashboard'
-    } catch {
+      router.push('/dashboard')
+    } finally {
       setTrocando(false)
     }
   }
