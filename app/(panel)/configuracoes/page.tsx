@@ -1,9 +1,9 @@
 'use client'
 import { useEffect, useState, FormEvent } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { configApi } from '@/lib/api'
-import type { Configuracao } from '@/lib/types'
-import { Check, Loader2 } from 'lucide-react'
+import { configApi, unidadesApi } from '@/lib/api'
+import type { Configuracao, Unidade } from '@/lib/types'
+import { Check, Loader2, Store, Plus } from 'lucide-react'
 
 const inputCls = 'w-full bg-card border border-input rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition'
 
@@ -15,6 +15,70 @@ const DIAS: Array<{ iso: number; label: string }> = [
 
 function parseDias(s: string): number[] {
   return s.split(',').map(p => Number(p.trim())).filter(n => n >= 1 && n <= 7)
+}
+
+/** Multi-unidade (Diamond): lista as unidades e cria novas. A troca fica no menu lateral. */
+function UnidadesBloco() {
+  const { token } = useAuth()
+  const [unidades, setUnidades] = useState<Unidade[]>([])
+  const [criando, setCriando] = useState(false)
+  const [nomeNova, setNomeNova] = useState('')
+  const [salvando, setSalvando] = useState(false)
+  const [erroUnidade, setErroUnidade] = useState('')
+
+  useEffect(() => {
+    if (!token) return
+    unidadesApi.list(token).then(setUnidades).catch(() => {})
+  }, [token])
+
+  async function criar() {
+    if (!token || !nomeNova.trim()) return
+    setSalvando(true); setErroUnidade('')
+    try {
+      await unidadesApi.criar(token, { nome: nomeNova.trim() })
+      setNomeNova(''); setCriando(false)
+      setUnidades(await unidadesApi.list(token))
+    } catch (e: unknown) {
+      setErroUnidade(e instanceof Error ? e.message : 'Erro ao criar unidade')
+    } finally { setSalvando(false) }
+  }
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-foreground mb-1.5">
+        <Store size={15} className="inline mr-1.5 -mt-0.5" />Unidades ({unidades.length})
+      </label>
+      <p className="text-xs text-muted mb-2">
+        Tem mais de um estabelecimento? Cada unidade tem WhatsApp, agenda e assinatura próprios —
+        e você troca entre elas no topo do menu lateral. A nova unidade começa com 14 dias grátis.
+      </p>
+      <div className="space-y-1.5 mb-2">
+        {unidades.map(u => (
+          <div key={u.tenantId} className="flex items-center gap-2 text-sm text-foreground">
+            🏪 {u.nome}
+            <span className="text-xs text-muted">({u.plano})</span>
+            {u.atual && <span className="text-xs bg-primary-subtle text-primary px-2 py-0.5 rounded-full font-medium">atual</span>}
+          </div>
+        ))}
+      </div>
+      {criando ? (
+        <div className="flex gap-2 items-center">
+          <input value={nomeNova} onChange={e => setNomeNova(e.target.value)} placeholder="Nome da nova unidade" className={inputCls} autoFocus />
+          <button type="button" onClick={criar} disabled={salvando || !nomeNova.trim()}
+            className="inline-flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-semibold px-3 py-2 rounded-lg transition disabled:opacity-50 shrink-0">
+            {salvando ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Criar
+          </button>
+          <button type="button" onClick={() => setCriando(false)} className="text-sm text-muted hover:text-foreground shrink-0">Cancelar</button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setCriando(true)}
+          className="inline-flex items-center gap-1.5 text-sm border border-border rounded-lg px-3 py-2 text-muted hover:text-primary hover:border-primary transition">
+          <Plus size={15} /> Nova unidade
+        </button>
+      )}
+      {erroUnidade && <p className="text-danger text-xs mt-2">{erroUnidade}</p>}
+    </div>
+  )
 }
 
 export default function ConfiguracoesPage() {
@@ -283,6 +347,8 @@ export default function ConfiguracoesPage() {
                       className={`mt-2 ${inputCls}`} />
                   )}
                 </div>
+
+                <UnidadesBloco />
 
                 <div>
                   <label className="flex items-start gap-3 cursor-pointer">

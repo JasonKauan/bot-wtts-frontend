@@ -372,6 +372,26 @@ export const conversasApi = {
     }),
 }
 
+// ── Multi-unidade (Diamond) ───────────────────────────────────────────────────
+export const unidadesApi = {
+  list: (token: string) =>
+    request<import('./types').Unidade[]>('/api/unidades', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  criar: (token: string, body: { nome: string; telefoneWhatsapp?: string }) =>
+    request<import('./types').Unidade>('/api/unidades', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }),
+  trocar: (token: string, tenantId: string) =>
+    request<{ token: string; nome: string }>('/api/unidades/trocar', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ tenantId }),
+    }),
+}
+
 // ── Clientes fixos (recorrência) ──────────────────────────────────────────────
 export const recorrenciasApi = {
   list: (token: string) =>

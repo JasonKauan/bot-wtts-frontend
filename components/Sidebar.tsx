@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
-import { agendamentosApi } from '@/lib/api'
+import { agendamentosApi, unidadesApi } from '@/lib/api'
+import type { Unidade } from '@/lib/types'
 import ThemeToggle from '@/components/ThemeToggle'
 import {
   LayoutDashboard, CalendarDays, Users, Scissors, CreditCard,
@@ -31,8 +32,10 @@ const links = [
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
-  const { token, logout } = useAuth()
+  const { token, login, logout } = useAuth()
   const [pendentes, setPendentes] = useState(0)
+  const [unidades, setUnidades] = useState<Unidade[]>([])
+  const [trocando, setTrocando] = useState(false)
 
   useEffect(() => {
     if (!token) return
@@ -42,8 +45,22 @@ export default function Sidebar() {
       .catch(() => {})
     carregar()
     const t = setInterval(carregar, 30000) // atualiza a cada 30s
+    unidadesApi.list(token).then(u => { if (vivo) setUnidades(u) }).catch(() => {})
     return () => { vivo = false; clearInterval(t) }
   }, [token])
+
+  /** Multi-unidade: troca o token pro tenant escolhido e recarrega o painel inteiro. */
+  async function trocarUnidade(tenantId: string) {
+    if (!token || trocando) return
+    setTrocando(true)
+    try {
+      const r = await unidadesApi.trocar(token, tenantId)
+      login(r.token)
+      window.location.href = '/dashboard'
+    } catch {
+      setTrocando(false)
+    }
+  }
 
   function handleLogout() {
     logout()
@@ -52,11 +69,24 @@ export default function Sidebar() {
 
   return (
     <aside className="w-60 shrink-0 min-h-screen bg-card border-r border-border flex flex-col">
-      <div className="px-5 py-5 flex items-center gap-2.5 border-b border-border">
-        <span className="grid place-items-center h-9 w-9 rounded-xl bg-primary text-primary-foreground shadow-sm">
-          <CalendarCheck size={20} />
-        </span>
-        <span className="text-lg font-bold tracking-tight text-foreground">AgendaBot</span>
+      <div className="px-5 py-5 border-b border-border">
+        <div className="flex items-center gap-2.5">
+          <span className="grid place-items-center h-9 w-9 rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <CalendarCheck size={20} />
+          </span>
+          <span className="text-lg font-bold tracking-tight text-foreground">AgendaBot</span>
+        </div>
+        {unidades.length > 1 && (
+          <select
+            value={unidades.find(u => u.atual)?.tenantId ?? ''}
+            onChange={e => trocarUnidade(e.target.value)}
+            disabled={trocando}
+            title="Trocar de unidade"
+            className="mt-3 w-full bg-card border border-input rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary transition disabled:opacity-50"
+          >
+            {unidades.map(u => <option key={u.tenantId} value={u.tenantId}>🏪 {u.nome}</option>)}
+          </select>
+        )}
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">

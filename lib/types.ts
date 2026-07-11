@@ -170,6 +170,13 @@ export interface ConfiguracaoPayload {
   aniversarioMsg: string | null
 }
 
+export interface Unidade {
+  tenantId: string
+  nome: string
+  plano: string
+  atual: boolean
+}
+
 export interface AuthResponse {
   token: string
   userId: string
