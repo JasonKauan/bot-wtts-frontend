@@ -33,6 +33,14 @@ export default function ConfiguracoesPage() {
   const [resumoDiario, setResumoDiario] = useState(true)
   const [faltasAprovacao, setFaltasAprovacao] = useState(0)
   const [permiteCombo, setPermiteCombo] = useState(true)
+  const [nivelPlano, setNivelPlano] = useState(1)
+  const [paginaPublica, setPaginaPublica] = useState(false)
+  const [slug, setSlug] = useState('')
+  const [reativacaoDias, setReativacaoDias] = useState(0)
+  const [reativacaoMsg, setReativacaoMsg] = useState('')
+  const [aniversarioAtivo, setAniversarioAtivo] = useState(false)
+  const [aniversarioMsg, setAniversarioMsg] = useState('')
+  const [linkCopiado, setLinkCopiado] = useState(false)
   const [saving, setSaving] = useState(false)
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState('')
@@ -54,6 +62,13 @@ export default function ConfiguracoesPage() {
       setResumoDiario(c.resumoDiario)
       setFaltasAprovacao(c.faltasParaAprovacao)
       setPermiteCombo(c.permiteCombo)
+      setNivelPlano(c.nivelPlano)
+      setPaginaPublica(c.paginaPublica)
+      setSlug(c.slug ?? '')
+      setReativacaoDias(c.reativacaoDias)
+      setReativacaoMsg(c.reativacaoMsg ?? '')
+      setAniversarioAtivo(c.aniversarioAtivo)
+      setAniversarioMsg(c.aniversarioMsg ?? '')
     })
   }, [token])
 
@@ -78,8 +93,15 @@ export default function ConfiguracoesPage() {
         resumoDiario,
         faltasParaAprovacao: faltasAprovacao,
         permiteCombo,
+        paginaPublica,
+        slug: slug.trim(),
+        reativacaoDias,
+        reativacaoMsg: reativacaoMsg.trim() || null,
+        aniversarioAtivo,
+        aniversarioMsg: aniversarioMsg.trim() || null,
       })
       setConfig(updated)
+      setSlug(updated.slug ?? '')
       setSucesso(true)
       setTimeout(() => setSucesso(false), 3000)
     } catch (err: unknown) {
@@ -210,6 +232,76 @@ export default function ConfiguracoesPage() {
               0 = desligado. Ex.: 2 = quem faltou 2 vezes ou mais nos últimos 90 dias não confirma sozinho —
               o pedido cai na aba <b>Solicitações</b> e você decide se aceita.
             </p>
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <p className="text-sm font-semibold text-foreground mb-1">💎 Recursos Diamond</p>
+            {nivelPlano < 3 ? (
+              <p className="text-xs text-muted">
+                Página pública de agendamento, reativação de clientes sumidos e parabéns de aniversário
+                fazem parte do plano <b>Diamond</b> — veja na aba Assinatura.
+              </p>
+            ) : (
+              <div className="space-y-5 mt-3">
+                <div>
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" checked={paginaPublica} onChange={e => setPaginaPublica(e.target.checked)} className="accent-primary mt-1 h-4 w-4" />
+                    <span>
+                      <span className="block text-sm font-medium text-foreground">Página pública de agendamento</span>
+                      <span className="block text-xs text-muted mt-0.5">
+                        Um link pra colocar na bio do Instagram: o cliente agenda pelo navegador, sem WhatsApp.
+                      </span>
+                    </span>
+                  </label>
+                  {paginaPublica && (
+                    <div className="pl-7 mt-2 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted shrink-0">…/agendar/</span>
+                        <input value={slug} onChange={e => setSlug(e.target.value)} placeholder="minha-barbearia" className={`flex-1 ${inputCls}`} />
+                      </div>
+                      {config.slug && (
+                        <button type="button"
+                          onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/agendar/${config.slug}`); setLinkCopiado(true); setTimeout(() => setLinkCopiado(false), 2000) }}
+                          className="text-xs text-primary hover:underline">
+                          {linkCopiado ? '✓ Link copiado!' : `Copiar link: ${typeof window !== 'undefined' ? window.location.origin : ''}/agendar/${config.slug}`}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Reativar clientes sumidos (dias sem visita)</label>
+                  <input type="number" min={0} max={365} value={reativacaoDias} onChange={e => setReativacaoDias(Number(e.target.value))} className={`w-24 ${inputCls}`} />
+                  <p className="text-xs text-muted mt-1">
+                    0 = desligado. Ex.: 45 = quem não aparece há 45 dias e não tem horário marcado recebe um
+                    &quot;sentimos sua falta&quot; (no máximo 1 a cada 60 dias por cliente, 10 por dia).
+                  </p>
+                  {reativacaoDias > 0 && (
+                    <textarea value={reativacaoMsg} onChange={e => setReativacaoMsg(e.target.value)} rows={2}
+                      placeholder={'Mensagem personalizada (opcional). Use {nome} e {estabelecimento}.'}
+                      className={`mt-2 ${inputCls}`} />
+                  )}
+                </div>
+
+                <div>
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" checked={aniversarioAtivo} onChange={e => setAniversarioAtivo(e.target.checked)} className="accent-primary mt-1 h-4 w-4" />
+                    <span>
+                      <span className="block text-sm font-medium text-foreground">Parabéns de aniversário</span>
+                      <span className="block text-xs text-muted mt-0.5">
+                        Quem tem aniversário cadastrado (aba Clientes) recebe uma mensagem no dia — 1x por ano.
+                      </span>
+                    </span>
+                  </label>
+                  {aniversarioAtivo && (
+                    <textarea value={aniversarioMsg} onChange={e => setAniversarioMsg(e.target.value)} rows={2}
+                      placeholder={'Mensagem personalizada (opcional). Use {nome} e {estabelecimento}.'}
+                      className={`mt-2 pl-0 ${inputCls}`} style={{ marginLeft: '1.75rem', width: 'calc(100% - 1.75rem)' }} />
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {erro && <p className="text-danger text-sm">{erro}</p>}

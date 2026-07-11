@@ -82,6 +82,14 @@ export interface Configuracao {
   resumoDiario: boolean
   faltasParaAprovacao: number // 0 = escudo anti-faltão desligado
   permiteCombo: boolean
+  // Recursos Diamond
+  paginaPublica: boolean
+  slug: string | null
+  reativacaoDias: number // 0 = desligado
+  reativacaoMsg: string | null
+  aniversarioAtivo: boolean
+  aniversarioMsg: string | null
+  nivelPlano: number // 1=Gold 2=Platinum 3=Diamond/Trial
 }
 
 export interface ClienteCrm {
@@ -91,6 +99,7 @@ export interface ClienteCrm {
   faltas: number
   ultimaVisita: string | null
   proximoAgendamento: string | null
+  aniversario: string | null // "dd/mm" (Diamond)
 }
 
 export interface ServicoContagem {
@@ -153,6 +162,12 @@ export interface ConfiguracaoPayload {
   resumoDiario: boolean
   faltasParaAprovacao: number
   permiteCombo: boolean
+  paginaPublica: boolean
+  slug: string
+  reativacaoDias: number
+  reativacaoMsg: string | null
+  aniversarioAtivo: boolean
+  aniversarioMsg: string | null
 }
 
 export interface AuthResponse {

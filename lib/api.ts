@@ -315,6 +315,13 @@ export const clientesApi = {
     request<import('./types').ClienteCrm[]>('/api/clientes', {
       headers: { Authorization: `Bearer ${token}` },
     }),
+  /** dia=0/mes=0 remove o aniversário. Recurso Diamond. */
+  salvarAniversario: (token: string, body: { telefone: string; dia: number; mes: number; nome?: string }) =>
+    request<{ aniversario: string }>('/api/clientes/aniversario', {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    }),
 }
 
 // ── Relatórios ────────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { clientesApi } from '@/lib/api'
 import type { ClienteCrm } from '@/lib/types'
-import { Search, Users, CalendarCheck, UserX } from 'lucide-react'
+import { Search, Users, CalendarCheck, UserX, Cake, Check, X } from 'lucide-react'
 
 export default function ClientesPage() {
   const { token } = useAuth()
@@ -64,6 +64,7 @@ export default function ClientesPage() {
                   <th className="font-medium px-4 py-3">Faltas</th>
                   <th className="font-medium px-4 py-3">Última visita</th>
                   <th className="font-medium px-4 py-3">Próximo horário</th>
+                  <th className="font-medium px-4 py-3">Aniversário</th>
                 </tr>
               </thead>
               <tbody>
@@ -91,6 +92,9 @@ export default function ClientesPage() {
                         ? <span className="text-xs font-medium rounded-full px-2 py-0.5 bg-primary-subtle text-primary">{fmtDataHora(c.proximoAgendamento)}</span>
                         : <span className="text-muted">—</span>}
                     </td>
+                    <td className="px-4 py-3">
+                      <AniversarioCell cliente={c} token={token} onErro={setErro} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -99,6 +103,48 @@ export default function ClientesPage() {
         </div>
       )}
     </div>
+  )
+}
+
+/** Aniversário dd/mm com edição inline (recurso Diamond — o backend explica se o plano não cobrir). */
+function AniversarioCell({ cliente, token, onErro }: {
+  cliente: ClienteCrm; token: string | null; onErro: (msg: string) => void
+}) {
+  const [valor, setValor] = useState(cliente.aniversario ?? '')
+  const [editando, setEditando] = useState(false)
+  const [salvo, setSalvo] = useState(cliente.aniversario ?? '')
+
+  async function salvar() {
+    if (!token) return
+    const m = valor.trim().match(/^(\d{1,2})\/(\d{1,2})$/)
+    if (valor.trim() !== '' && !m) { onErro('Aniversário no formato dd/mm (ex.: 07/03).'); return }
+    try {
+      const r = await clientesApi.salvarAniversario(token, {
+        telefone: cliente.telefone,
+        dia: m ? Number(m[1]) : 0,
+        mes: m ? Number(m[2]) : 0,
+        nome: cliente.nome,
+      })
+      setSalvo(r.aniversario); setValor(r.aniversario); setEditando(false); onErro('')
+    } catch (e: unknown) {
+      onErro(e instanceof Error ? e.message : 'Erro ao salvar aniversário')
+    }
+  }
+
+  if (!editando) {
+    return (
+      <button onClick={() => setEditando(true)} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition" title="Definir aniversário">
+        <Cake size={14} className={salvo ? 'text-primary' : ''} /> {salvo || 'definir'}
+      </button>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <input value={valor} onChange={e => setValor(e.target.value)} placeholder="dd/mm" autoFocus
+        className="w-20 bg-card border border-input rounded-lg px-2 py-1 text-sm text-foreground focus:outline-none focus:border-primary transition" />
+      <button onClick={salvar} className="text-primary" title="Salvar"><Check size={15} /></button>
+      <button onClick={() => { setEditando(false); setValor(salvo) }} className="text-muted hover:text-foreground" title="Cancelar"><X size={15} /></button>
+    </span>
   )
 }
 
